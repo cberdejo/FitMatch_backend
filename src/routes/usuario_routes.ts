@@ -1,11 +1,13 @@
 import express, { Router } from 'express';
-import { createUsuario, editUsuario, getUsuarioById, getUsuarioByEmail, getUsuarios, verifyUsuarios, decodeToken } from '../controller/usuario_controller';
+import { createUsuario, editUsuario, getUsuarioById, getUsuarioByEmail, getUsuarios, verifyUsuarios, decodeToken, verifyEmailToken } from '../controller/usuario_controller';
 
 const usuarioRouter: Router = express.Router();
 
 usuarioRouter.get('/usuarios', getUsuarios);
 
 usuarioRouter.post('/usuarios', createUsuario);
+usuarioRouter.post('/email_token',verifyEmailToken);
+
 usuarioRouter.put('/usuarios', editUsuario);
 
 usuarioRouter.get('/usuarios/id/:id', getUsuarioById);

@@ -5,9 +5,11 @@ import {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
+  verifyEmailTokenService
 } from '../service/usuario_service';
 
-import * as bcrypt from 'bcryptjs';
+import { transporter } from '../config/mailer';
+import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
 
@@ -20,22 +22,24 @@ import { JwtPayload } from 'jsonwebtoken';
 async function createUsuario(req: Request, res: Response) {
   try {
 
-    if (req.body === undefined || req.body === null) {
-      res.status(400).json({ error: 'Faltan datos en el cuerpo de la solicitud' });
-      return;
-    }
-    const { credentials, data } = req.body;
+   
+    const { credentials, data} = req.body;
     
-    const saltRounds = 10;
-    const hashedPassword = bcrypt.hashSync(credentials.plainPassword, saltRounds);
+    //comprobar que los datos son correctos
+
+
+    const  hashedPassword  = hashPassword(credentials.plainPassword);
 
     const nuevoUsuario = {
       email: credentials.email,
       password: hashedPassword,
+      emailToken: crypto.randomBytes(64).toString('hex'),
       ...data,
     };
 
     const usuario = await createUsuarioService(nuevoUsuario);
+
+   
     res.status(201).json(usuario);
     console.log("usuario creado");
   } catch (error) {
@@ -43,6 +47,8 @@ async function createUsuario(req: Request, res: Response) {
     res.status(500).json({ error });
   }
 }
+
+
 
 /**
  * Edita la información de un usuario.
@@ -52,8 +58,8 @@ async function createUsuario(req: Request, res: Response) {
 async function editUsuario(req: Request, res: Response) {
   try {
     const usuario = req.body; // Se pasa un usuario con una plainPassword
-    const saltRounds = 10;
-    const hashedPassword = bcrypt.hashSync(usuario.password, saltRounds);
+ 
+    const  hashedPassword  = hashPassword(usuario.password);
 
     const nuevoUsuario = {
       ...usuario,
@@ -98,8 +104,8 @@ async function verifyUsuarios(req: Request, res: Response) {
     if (user === null) {
       res.status(401).json({ message: 'Credenciales incorrectas' });
     } else {
-      const passwordMatches = bcrypt.compareSync(plainPassword, user.password);
-
+      const passwordMatches =  checkPassword(plainPassword, user.password);
+      //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
       if (passwordMatches) {
         // Crea un token JWT con la clave secreta
         const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET!, { expiresIn: '1h' });
@@ -181,6 +187,76 @@ async function decodeToken(req: Request, res: Response) {
   }
 }
 
+async function verifyEmailToken(req: Request, res: Response) {
+  try {
+    const {emailToken, email} = req.body;
+ 
+    if (!emailToken) {
+      res.status(400).json({ error: 'Token de verificación no encontrado' }); 
+    } 
+    
+    const user = await verifyEmailTokenService(emailToken, email);
+    if (user) {
+      res.status(200).json(user);
+    }else{
+      res.status(403).json({ error: 'Token de verificación incorrecto' });
+    }
+
+  }catch(error){
+    console.error('Error al decodificar el token', error);
+    res.status(500).json(error);
+  }
+}
+/**
+ * Envía un correo para verificar una cuenta.
+ * @param email - Correo pendiente de verificar.
+ */	
+async function sendConfirmationMail(email: string, verificationToken: string) {
+  try {
+  
+        await transporter.sendMail({
+          from: process.env.MY_EMAIL,
+          to: email,
+          subject: 'Confirmación de Registro en Fit-Match',
+          text: `
+          <p>Estimado usuario de Google,</p>
+          <p>Gracias por registrarte en Fit-Match. Para completar tu registro, por favor, introduce el siguiente código de verificación de 5 cifras en la página correspondiente:</p>
+          <a href="${process.env.FRONTEND_URL}/verificar?token=${verificationToken}&email=${email}">Verificar Correo Electrónico</a>
+          <p>Si no has solicitado este registro, por favor ignora este correo.</p>
+          <p>Atentamente,<br>El equipo de Fit-Match</p>
+        `
+        });
+
+
+
+  } catch (error) {
+    console.error('Error al enviar correo', error);
+
+  }
+}
+
+/**
+ * Verifica si una contraseña coincide con una contraseña cifrada.
+ *@param plainPassword - La contraseña sin cifrar.
+ @param hashedPassword - La contraseña cifrada.
+ * @returns True si la contraseña coincide, False de lo contrario.
+ */
+ function checkPassword(plainPassword: string, hashedPassword: string): boolean {
+  const hashedPasswordInput = hashPassword(plainPassword);
+  return hashedPassword === hashedPasswordInput;
+}
+/**
+ * Cifra una contraseña usando sha 256.
+ * @param password - La contraseña sin cifrar.
+ * @returns La contraseña cifrada.
+ */	
+function hashPassword(password: string): string {
+  const hash = crypto.createHmac('sha256', process.env.HASH_SECRET!);
+  hash.update(password);
+  return hash.digest('hex');
+}
+
+
 export {
   createUsuario,
   editUsuario,
@@ -188,5 +264,6 @@ export {
   getUsuarioByEmail,
   getUsuarios,
   verifyUsuarios,
-  decodeToken
+  decodeToken,
+  verifyEmailToken
 }

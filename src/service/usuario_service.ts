@@ -5,7 +5,7 @@ import db from "../database/database";
  * @param data - Datos del usuario a crear.
  * @returns Promise con el nuevo usuario creado.
  */
-function createUsuarioService(data: any) {
+async function createUsuarioService(data: any) {
   try {
     return db.usuario.create({
       data: data,
@@ -20,7 +20,7 @@ function createUsuarioService(data: any) {
  * Obtiene todos los usuarios de la base de datos.
  * @returns Promise con la lista de usuarios.
  */
-function getUsuariosService() {
+async function getUsuariosService() {
   try {
     return db.usuario.findMany();
   } catch (error) {
@@ -34,7 +34,7 @@ function getUsuariosService() {
  * @param id - ID del usuario a buscar.
  * @returns Promise con el usuario encontrado.
  */
-function getUsuarioByIdService(id: number) {
+async function getUsuarioByIdService(id: number) {
   try {
     return db.usuario.findUnique({
       where: {
@@ -52,7 +52,7 @@ function getUsuarioByIdService(id: number) {
  * @param email - Dirección de correo electrónico del usuario a buscar.
  * @returns Promise con el usuario encontrado.
  */
-function getUsuariosByEmailService(email: string) {
+async function getUsuariosByEmailService(email: string) {
   try {
     return db.usuario.findUnique({
       where: {
@@ -70,7 +70,7 @@ function getUsuariosByEmailService(email: string) {
  * @param data - Datos actualizados del usuario.
  * @returns Promise con el mensaje de éxito.
  */
-function editUsuarioService(data: any) {
+async function editUsuarioService(data: any) {
   try {
     return db.usuario.update({
       where: {
@@ -84,10 +84,25 @@ function editUsuarioService(data: any) {
   }
 }
 
+async function verifyEmailTokenService(emailToken:string, email:string){
+  try{
+    return db.usuario.findFirst({
+      where:{
+        email_token:emailToken,
+        email:email
+      }
+    });
+  }catch(error){
+    throw new Error('No se pudo obtener los usuarios');
+    console.error('Error al obtener usuarios de la base de datos', error);
+  }
+}
+
 export {
   createUsuarioService,
   getUsuariosByEmailService,
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
+  verifyEmailTokenService
 };

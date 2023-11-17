@@ -5,13 +5,15 @@ import {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  verifyEmailTokenService
+ 
 } from '../service/usuario_service';
 
-import { transporter } from '../config/mailer';
+
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
+
+
 
 /**
  * Crea un nuevo usuario.
@@ -33,7 +35,6 @@ async function createUsuario(req: Request, res: Response) {
     const nuevoUsuario = {
       email: credentials.email,
       password: hashedPassword,
-      emailToken: crypto.randomBytes(64).toString('hex'),
       ...data,
     };
 
@@ -187,53 +188,7 @@ async function decodeToken(req: Request, res: Response) {
   }
 }
 
-async function verifyEmailToken(req: Request, res: Response) {
-  try {
-    const {emailToken, email} = req.body;
- 
-    if (!emailToken) {
-      res.status(400).json({ error: 'Token de verificación no encontrado' }); 
-    } 
-    
-    const user = await verifyEmailTokenService(emailToken, email);
-    if (user) {
-      res.status(200).json(user);
-    }else{
-      res.status(403).json({ error: 'Token de verificación incorrecto' });
-    }
 
-  }catch(error){
-    console.error('Error al decodificar el token', error);
-    res.status(500).json(error);
-  }
-}
-/**
- * Envía un correo para verificar una cuenta.
- * @param email - Correo pendiente de verificar.
- */	
-async function sendConfirmationMail(email: string, verificationToken: string) {
-  try {
-  
-        await transporter.sendMail({
-          from: process.env.MY_EMAIL,
-          to: email,
-          subject: 'Confirmación de Registro en Fit-Match',
-          text: `
-          <p>Estimado usuario de Google,</p>
-          <p>Gracias por registrarte en Fit-Match. Para completar tu registro, por favor, introduce el siguiente código de verificación de 5 cifras en la página correspondiente:</p>
-          <a href="${process.env.FRONTEND_URL}/verificar?token=${verificationToken}&email=${email}">Verificar Correo Electrónico</a>
-          <p>Si no has solicitado este registro, por favor ignora este correo.</p>
-          <p>Atentamente,<br>El equipo de Fit-Match</p>
-        `
-        });
-
-
-
-  } catch (error) {
-    console.error('Error al enviar correo', error);
-
-  }
-}
 
 /**
  * Verifica si una contraseña coincide con una contraseña cifrada.
@@ -265,5 +220,4 @@ export {
   getUsuarios,
   verifyUsuarios,
   decodeToken,
-  verifyEmailToken
 }

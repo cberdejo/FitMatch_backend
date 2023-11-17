@@ -84,19 +84,6 @@ async function editUsuarioService(data: any) {
   }
 }
 
-async function verifyEmailTokenService(emailToken:string, email:string){
-  try{
-    return db.usuario.findFirst({
-      where:{
-        email_token:emailToken,
-        email:email
-      }
-    });
-  }catch(error){
-    throw new Error('No se pudo obtener los usuarios');
-    console.error('Error al obtener usuarios de la base de datos', error);
-  }
-}
 
 export {
   createUsuarioService,
@@ -104,5 +91,5 @@ export {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  verifyEmailTokenService
+
 };

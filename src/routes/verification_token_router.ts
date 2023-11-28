@@ -7,4 +7,5 @@ verificationTokenRouter.post('/sendConfirmation', sendConfirmationMail);
 verificationTokenRouter.post('/verificationToken', createVerificationToken);
 verificationTokenRouter.post('/isVerified', tokenIsValid);
 
+
 export default verificationTokenRouter;

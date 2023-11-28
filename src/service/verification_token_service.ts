@@ -7,17 +7,12 @@ import db from "../database/database";
  * @param email - Correo.
  * @returns Promise con el mensaje de éxito.
  */
-async function getVerificationTokenService(email:string, verificationToken:string){
+async function getVerificationTokenService(verificationToken:string){
     try{
         return db.verification_tokens.findFirst({
-        where:{
-            email: email,
-            token: verificationToken,
-            expiresAt: {
-                
-                gte: new Date(),
-              },
-        }
+            where:{
+                token: verificationToken,
+            }
         }) ;
 
         
@@ -30,14 +25,11 @@ async function getVerificationTokenService(email:string, verificationToken:strin
 
 
 
-async function createVerificationTokenService(data:{token:string, email:string, expiresAt:Date}){
+async function createVerificationTokenService(data:{token:string}){
     try{
         return db.verification_tokens.create({
             data:{
-                token: data.token,
-                email: data.email,
-                expiresAt: data.expiresAt,
-               
+                token: data.token,               
             }
         })
     }catch(error){

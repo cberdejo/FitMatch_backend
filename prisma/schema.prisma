@@ -206,6 +206,7 @@ model usuario {
   password                                                         String                @db.VarChar(255)
   profile_picture                                                  String?               @db.VarChar(255)
   profile_id                                                       Int
+  birth                                                            DateTime?             @default(dbgenerated("(now())")) @db.Date
   clientes                                                         clientes?
   comentario_review                                                comentario_review[]
   entrenadores                                                     entrenadores?
@@ -268,7 +269,5 @@ model emparejamiento {
 
 model verification_tokens {
   token     String   @id @db.VarChar(255)
-  email     String   @db.VarChar(255)
   createdAt DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
-  expiresAt DateTime @db.Timestamp(0)
 }

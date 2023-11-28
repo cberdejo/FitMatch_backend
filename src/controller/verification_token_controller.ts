@@ -5,8 +5,12 @@ import {
     
 } from '../service/verification_token_service';
 
+import { hashPassword } from '../config/crypting';
 import transporter from "../config/mailer";  
-import * as crypto from 'crypto';
+
+import * as jwt from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
+
 
  
   
@@ -18,14 +22,34 @@ import * as crypto from 'crypto';
   async function tokenIsValid(req: Request, res: Response) {
     try {
       const { email, verificationToken } = req.body;
-      const verificationTokenObject = await getVerificationTokenService(email, verificationToken);
+      if (!email) {
+        return res.status(400).json({ status: 'error', data: 'Correo electrónico no especificado en la solicitud.' });
+      }
+      if (!verificationToken) {
+        return res.status(400).json({ status: 'error', data: 'Token de verificación no especificado en la solicitud.' });
+      }
+      
+      const verificationTokenObject = await getVerificationTokenService(verificationToken);
       if (verificationTokenObject) {
-        
-        // Después de verificar el token en el backend
-      return res.redirect(`${process.env.FRONTEND_URL}/verificacion-exitosa?email=${email}&token=${verificationToken}`);
+      
+        const secret = process.env.JWT_SECRET || "b09a8dfac58621a5b742dd865e4c4c7782f8f5c9387ae9a0b3c13d87bbbc1e7f";
+        const decodedToken: JwtPayload = jwt.verify(verificationToken, secret) as JwtPayload;
+        console.log("decoded email:" + decodedToken.user_data.email);
+        if (decodedToken.user_data.email !== email) {
+          return res.status(401).json({ status: 'error', data: 'Token de verificación no encontrado' });
+        } else{
+          const currentTimestamp = Math.floor(Date.now() / 1000); // Fecha actual en segundos
+          if (decodedToken.exp && decodedToken.exp < currentTimestamp) {
+            return res.status(401).json({ status: 'error', data: 'Token de verificación ha expirado' });
+          } else {
+            console.log(decodedToken);
+            return res.status(200).json({ status: 'success', data: decodedToken });
+          }
+
+        }
 
       } else {
-        return res.status(404).json({ status: 'error', error: 'Token de verificación no encontrado' });
+        return res.status(404).json({ status: 'error', data: 'Token de verificación no encontrado' });
       }
   
     } catch (error) {
@@ -38,26 +62,39 @@ import * as crypto from 'crypto';
   
   
   async function createVerificationToken(req: Request, res: Response) {
+    // EL TOKEN ESTÁ CIFRADO CON JWT, PERO LA CONTRASEÑA NO SE PASA PLANA, SE CIFRA PARA EXTRA SEGURIDAD
     try {
-      const { email } = req.body;
+      const user_data: {
+        username: string,
+        email: string,
+        password: string, 
+        profile_picture: string,
+        nacimiento: Date
+        
+      }  = req.body;
+
+      const user_data_psw_cifrado = {
+        username: user_data.username,
+        email: user_data.email,
+        password: hashPassword(user_data.password),
+        profile_picture: user_data.profile_picture,
+        nacimiento: user_data.nacimiento
+      }
       
-      const emailToken = crypto.randomBytes(64).toString('hex'); // Corrige aquí
+
       
-      
-      const fechaActual = new Date();
-      const minutosExpiracion: number = parseInt(process.env.MINUTOS_EXPIRACION_TOKEN_VERIFICACION || '15', 10);
-      
-      const fechaEnXMinutos = new Date(fechaActual.getTime() + minutosExpiracion * 60 * 1000);
-      
+      console.log('Email:', user_data.email);
+
+    
+      const emailToken = jwt.sign({ user_data_psw_cifrado }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+          
       const tokenObject = {
         token: emailToken,
-        email: email,
-        //createdAt: new Date(), 
-        expiresAt: fechaEnXMinutos,
+       
       }
       
       const verificationTokenObject = await createVerificationTokenService(tokenObject);
-     
+      
         
   
       res.status(200).json(verificationTokenObject);
@@ -67,6 +104,8 @@ import * as crypto from 'crypto';
     }
   }
 
+ 
+
  /**
  * Envía un correo para verificar una cuenta.
  * @param req - Objeto de solicitud de Express.
@@ -75,7 +114,14 @@ import * as crypto from 'crypto';
 async function sendConfirmationMail(req: Request, res: Response) {
     try {
       const { email, verificationToken } = req.body;
-      const confirmationLink = `${process.env.FRONTEND_URL}/verificar?token=${verificationToken}&email=${email}`;
+      if (!email) {
+         res.status(400).json({ error: 'Correo electrónico no especificado en la solicitud.' });
+      }
+      if (!verificationToken) {
+        res.status(400).json({ error: 'Token de verificación no especificado en la solicitud.' });
+      }
+      console.log('Email:', email);
+      const confirmationLink = `${process.env.FRONTEND_URL}verificar?token=${verificationToken}&email=${email}`;
   
       await transporter.sendMail({
         from: process.env.MY_EMAIL,
@@ -99,9 +145,11 @@ async function sendConfirmationMail(req: Request, res: Response) {
   }
   
 
+
   export {
     createVerificationToken,
     sendConfirmationMail,
-    tokenIsValid
+    tokenIsValid,
+
     
   }

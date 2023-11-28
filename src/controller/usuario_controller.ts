@@ -8,8 +8,8 @@ import {
  
 } from '../service/usuario_service';
 
+import { checkPassword, hashPassword } from '../config/crypting';
 
-import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
 
@@ -24,21 +24,28 @@ import { JwtPayload } from 'jsonwebtoken';
 async function createUsuario(req: Request, res: Response) {
   try {
 
-   
-    const { credentials, data} = req.body;
+
+    const {data} = req.body; 
+
+    if (!data || !data.username || !data.email || !data.password || !data.profile_id || !data.birth || !data.profile_picture) {
+      console.log(data);
+      res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+      return;
+    }
+
+    const crypt_data = {
+      username: data.username,
+      email: data.email,
+      profile_picture: data.profile_picture,
+      birth: data.birth,
+      profile_id: data.profile_id,
+      password: hashPassword(data.password),
+    };
     
     //comprobar que los datos son correctos
 
 
-    const  hashedPassword  = hashPassword(credentials.plainPassword);
-
-    const nuevoUsuario = {
-      email: credentials.email,
-      password: hashedPassword,
-      ...data,
-    };
-
-    const usuario = await createUsuarioService(nuevoUsuario);
+    const usuario = await createUsuarioService(crypt_data);
 
    
     res.status(201).json(usuario);
@@ -60,14 +67,7 @@ async function editUsuario(req: Request, res: Response) {
   try {
     const usuario = req.body; // Se pasa un usuario con una plainPassword
  
-    const  hashedPassword  = hashPassword(usuario.password);
-
-    const nuevoUsuario = {
-      ...usuario,
-      password: hashedPassword,
-    };
-
-    await editUsuarioService(nuevoUsuario);
+    await editUsuarioService(usuario);
     res.status(201).json({ message: 'Usuario editado' });
     console.log("usuario editado");
   } catch (error) {
@@ -111,6 +111,7 @@ async function verifyUsuarios(req: Request, res: Response) {
         // Crea un token JWT con la clave secreta
         const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.status(200).json({ token });
+        console.log("funciona");
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });
       }
@@ -189,27 +190,6 @@ async function decodeToken(req: Request, res: Response) {
 }
 
 
-
-/**
- * Verifica si una contraseña coincide con una contraseña cifrada.
- *@param plainPassword - La contraseña sin cifrar.
- @param hashedPassword - La contraseña cifrada.
- * @returns True si la contraseña coincide, False de lo contrario.
- */
- function checkPassword(plainPassword: string, hashedPassword: string): boolean {
-  const hashedPasswordInput = hashPassword(plainPassword);
-  return hashedPassword === hashedPasswordInput;
-}
-/**
- * Cifra una contraseña usando sha 256.
- * @param password - La contraseña sin cifrar.
- * @returns La contraseña cifrada.
- */	
-function hashPassword(password: string): string {
-  const hash = crypto.createHmac('sha256', process.env.HASH_SECRET!);
-  hash.update(password);
-  return hash.digest('hex');
-}
 
 
 export {

@@ -5,6 +5,7 @@ import {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
+  
  
 } from '../service/usuario_service';
 
@@ -108,8 +109,9 @@ async function verifyUsuarios(req: Request, res: Response) {
       const passwordMatches =  checkPassword(plainPassword, user.password);
       //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
       if (passwordMatches) {
-        // Crea un token JWT con la clave secreta
-        const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        // Crea un token JWT con la clave secreta+
+        const user = await getUsuariosByEmailService(email);
+        const token = jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.status(200).json({ token });
         console.log("funciona");
       } else {
@@ -188,6 +190,8 @@ async function decodeToken(req: Request, res: Response) {
     res.status(500).json(error);
   }
 }
+
+
 
 
 

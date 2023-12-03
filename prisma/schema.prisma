@@ -11,14 +11,11 @@ datasource db {
 model clientes {
   client_id                       Int                               @id @default(autoincrement())
   user_id                         Int                               @unique(map: "user_id")
-  matching_id                     Int?
-  emparejamiento                  emparejamiento?                   @relation(fields: [matching_id], references: [matching_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_clientes_emparejamiento")
   usuario                         usuario                           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "clientes_ibfk_1")
+  clientes_entrenadores_contrato  clientes_entrenadores_contrato[]
   entrenadores_guardados          entrenadores_guardados[]
   reviews                         reviews[]
   sesion_de_entrenamiento_entrada sesion_de_entrenamiento_entrada[]
-
-  @@index([matching_id], map: "FK_clientes_emparejamiento")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -89,19 +86,16 @@ model ejercicios_grupo_muscular {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model entrenadores {
-  trainer_id                  Int                           @id @default(autoincrement())
-  user_id                     Int                           @unique(map: "user_id")
-  picture                     String?                       @db.VarChar(255)
-  description                 String?                       @db.Text
-  price                       Decimal?                      @db.Decimal(10, 2)
-  matching_id                 Int?
-  emparejamiento              emparejamiento?               @relation(fields: [matching_id], references: [matching_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_entrenadores_emparejamiento")
-  usuario                     usuario                       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "entrenadores_ibfk_1")
-  entrenadores_guardados      entrenadores_guardados[]
-  plantillas_de_entrenamiento plantillas_de_entrenamiento[]
-  reviews                     reviews[]
-
-  @@index([matching_id], map: "FK_entrenadores_emparejamiento")
+  trainer_id                     Int                              @id @default(autoincrement())
+  user_id                        Int                              @unique(map: "user_id")
+  picture                        String?                          @db.VarChar(255)
+  description                    String?                          @db.Text
+  price                          Float?
+  clientes_entrenadores_contrato clientes_entrenadores_contrato[]
+  usuario                        usuario                          @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "entrenadores_ibfk_1")
+  entrenadores_guardados         entrenadores_guardados[]
+  plantillas_de_entrenamiento    plantillas_de_entrenamiento[]
+  reviews                        reviews[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -171,15 +165,15 @@ model plantillas_de_entrenamiento {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model reviews {
   review_id         Int                 @id @default(autoincrement())
-  trainer_id        Int?
-  client_id         Int?
+  trainer_id        Int
+  client_id         Int
   rating            Int?
   review_content    String?             @db.Text
-  timestamp         DateTime?           @db.Timestamp(0)
+  timestamp         DateTime            @default(dbgenerated("(now())")) @db.Timestamp(0)
   comentario_review comentario_review[]
   me_gusta          me_gusta[]
-  entrenadores      entrenadores?       @relation(fields: [trainer_id], references: [trainer_id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_ibfk_1")
-  clientes          clientes?           @relation(fields: [client_id], references: [client_id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_ibfk_2")
+  entrenadores      entrenadores        @relation(fields: [trainer_id], references: [trainer_id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_ibfk_1")
+  clientes          clientes            @relation(fields: [client_id], references: [client_id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_ibfk_2")
 
   @@index([client_id], map: "client_id")
   @@index([trainer_id], map: "trainer_id")
@@ -204,11 +198,12 @@ model usuario {
   username                                                         String                @db.VarChar(255)
   email                                                            String                @unique(map: "email") @db.VarChar(255)
   password                                                         String                @db.VarChar(255)
-  profile_picture                                                  String?               @db.VarChar(255)
+  profile_picture                                                  String?               @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
   profile_id                                                       Int
   birth                                                            DateTime?             @default(dbgenerated("(now())")) @db.Date
   clientes                                                         clientes?
   comentario_review                                                comentario_review[]
+  emparejamiento                                                   emparejamiento[]
   entrenadores                                                     entrenadores?
   me_gusta                                                         me_gusta[]
   mensajes_mensajes_sender_idTousuario                             mensajes[]            @relation("mensajes_sender_idTousuario")
@@ -259,15 +254,24 @@ model sesion_de_entrenamiento_entrada {
 }
 
 model emparejamiento {
-  matching_id  Int            @id @default(autoincrement())
-  objetivos    String?        @default("otros") @db.VarChar(255)
-  intereses    String?        @default("otros") @db.VarChar(255)
-  experiencia  String?        @db.VarChar(255)
-  clientes     clientes[]
-  entrenadores entrenadores[]
+  matching_id Int      @id @default(autoincrement())
+  user_id     Int?
+  objetivos   String?  @db.VarChar(255)
+  experiencia String?  @db.VarChar(255)
+  intereses   String?  @db.VarChar(255)
+  usuario     usuario? @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_emparejamiento_usuario")
+
+  @@index([user_id], map: "FK_emparejamiento_usuario")
 }
 
-model verification_tokens {
-  token     String   @id @db.VarChar(255)
-  createdAt DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+model clientes_entrenadores_contrato {
+  contract_id  Int           @id @default(autoincrement())
+  client_id    Int?          @default(0)
+  trainer_id   Int?
+  activo       Boolean?      @db.Bit(1)
+  clientes     clientes?     @relation(fields: [client_id], references: [client_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_clientes_entrenados_entrenadores_clientes")
+  entrenadores entrenadores? @relation(fields: [trainer_id], references: [trainer_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_clientes_entrenados_entrenadores_entrenadores")
+
+  @@index([client_id], map: "FK_clientes_entrenados_entrenadores_clientes")
+  @@index([trainer_id], map: "FK_clientes_entrenados_entrenadores_entrenadores")
 }

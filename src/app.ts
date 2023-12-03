@@ -4,7 +4,8 @@ import express from 'express';
 import cors from 'cors';
 
 import usuarioRouter from './routes/usuario_routes';
-import verificationTokenRouter from './routes/verification_token_router';
+import trainer_postsRouter from './routes/trainers_posts_routes';
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -46,11 +47,8 @@ app.use(express.json());
 
 
 app.use('/', usuarioRouter);
-app.use('/', verificationTokenRouter);
+app.use('/', trainer_postsRouter);
 
-app.get('/', (_req, res) => {
-  res.send('Hello World!');
-})
 
 /*
 httpsServer.listen(port, () => {

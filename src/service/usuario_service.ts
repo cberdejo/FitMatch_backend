@@ -1,4 +1,4 @@
-import db from "../database/database";
+import db from "../config/database";
 
 /**
  * Crea un nuevo usuario en la base de datos.

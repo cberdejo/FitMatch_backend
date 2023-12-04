@@ -5,7 +5,7 @@ import {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  
+  getUserByClientIdService,
  
 } from '../service/usuario_service';
 
@@ -192,7 +192,24 @@ async function decodeToken(req: Request, res: Response) {
 }
 
 
-
+/**
+ * Retrieves the username of a user based on their client ID.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} - A promise that resolves with the username of the user with the specified client ID.
+ */
+async function getUserameByClienteId(req: Request, res: Response) {
+  try{
+      const id = parseInt(req.params.clienteId);
+      const user = await getUserByClientIdService(id);
+      console.log(user.username);
+      res.status(200).json(user.username);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+  }
+}
 
 
 
@@ -204,4 +221,5 @@ export {
   getUsuarios,
   verifyUsuarios,
   decodeToken,
+  getUserameByClienteId
 }

@@ -84,6 +84,36 @@ async function editUsuarioService(data: any) {
   }
 }
 
+/**
+ * Retrieves a user by their client ID from the database.
+ *
+ * @param {number} clientId - The client ID of the user.
+ * @return {Promise<object>} The user object if found.
+ * @throws {Error} If the user is not found for the provided client ID.
+ */
+async function getUserByClientIdService(clientId: number) {
+  try {
+      const cliente = await db.clientes.findUnique({
+          where: {
+              client_id: clientId,
+          },
+          include: {
+              usuario: true, // Asume que la relación se llama 'usuario'
+          },
+      });
+
+      if (cliente && cliente.usuario) {
+          return cliente.usuario;
+      } else {
+          throw new Error('Usuario no encontrado para el clientId proporcionado');
+      }
+  } catch (error) {
+      console.error('Error al obtener usuario por ID de la base de datos', error);
+      throw new Error('No se pudo obtener el usuario por ID');
+  }
+}
+
+
 
 export {
   createUsuarioService,
@@ -91,5 +121,6 @@ export {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
+  getUserByClientIdService
 
 };

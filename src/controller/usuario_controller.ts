@@ -113,7 +113,6 @@ async function verifyUsuarios(req: Request, res: Response) {
         const user = await getUsuariosByEmailService(email);
         const token = jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.status(200).json({ token });
-        console.log("funciona");
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });
       }

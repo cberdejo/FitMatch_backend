@@ -11,6 +11,8 @@ export interface TrainerPost {
     profile_picture: string;
     profile_id: number;
     birth: Date;
-    reviews?: reviews[]; 
+    reviews?: reviewsUsername[]; 
 }
-
+export interface reviewsUsername extends reviews {
+    username: string;
+}

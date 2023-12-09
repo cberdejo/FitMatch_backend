@@ -1,4 +1,4 @@
-import { reviews } from "@prisma/client";
+import { comentario_review, me_gusta, reviews } from "@prisma/client";
 
 export interface TrainerPost {
     trainer_id: number;
@@ -11,8 +11,10 @@ export interface TrainerPost {
     profile_picture: string;
     profile_id: number;
     birth: Date;
-    reviews?: reviewsUsername[]; 
+    reviews?: extendedReviews[]; 
 }
-export interface reviewsUsername extends reviews {
+export interface extendedReviews extends reviews {
     username: string;
+    me_gusta?: me_gusta[];
+    comenmtario_review?: comentario_review[];
 }

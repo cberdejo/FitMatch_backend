@@ -66,7 +66,11 @@ async function getTrainerPostService(user_id: number, page: number, pageSize: nu
         return db.reviews.findMany({
             where: {
                 trainer_id:trainer_id,
-            }
+            },
+            include: {
+                me_gusta: true, 
+                comentario_review: true, 
+              },
         })
     }
 

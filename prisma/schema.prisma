@@ -20,12 +20,13 @@ model clientes {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model comentario_review {
-  comment_id Int     @id @default(autoincrement())
+  comment_id Int      @id @default(autoincrement())
   review_id  Int
   user_id    Int
-  content    String? @db.Text
-  reviews    reviews @relation(fields: [review_id], references: [review_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_1")
-  usuario    usuario @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_2")
+  content    String   @db.Text
+  timestamp  DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  reviews    reviews  @relation(fields: [review_id], references: [review_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_1")
+  usuario    usuario  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_2")
 
   @@index([review_id], map: "review_id")
   @@index([user_id], map: "user_id")
@@ -125,6 +126,7 @@ model me_gusta {
   reviews   reviews @relation(fields: [review_id], references: [review_id], onDelete: NoAction, onUpdate: NoAction, map: "me_gusta_ibfk_1")
   usuario   usuario @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "me_gusta_ibfk_2")
 
+  @@unique([review_id, user_id], map: "review_id_user_id")
   @@index([review_id], map: "review_id")
   @@index([user_id], map: "user_id")
 }
@@ -167,8 +169,8 @@ model reviews {
   review_id         Int                 @id @default(autoincrement())
   trainer_id        Int
   client_id         Int
-  rating            Int?
-  review_content    String?             @db.Text
+  rating            Float
+  review_content    String              @db.Text
   timestamp         DateTime            @default(dbgenerated("(now())")) @db.Timestamp(0)
   comentario_review comentario_review[]
   me_gusta          me_gusta[]

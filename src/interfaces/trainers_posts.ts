@@ -16,5 +16,9 @@ export interface TrainerPost {
 export interface extendedReviews extends reviews {
     username: string;
     me_gusta?: me_gusta[];
-    comenmtario_review?: comentario_review[];
+    comentario_review?: extendedComentarioReviews[];
+}
+
+export interface extendedComentarioReviews extends comentario_review {
+    username: string;
 }

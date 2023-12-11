@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getTrainerPostService, getTrainerReviewsService } from '../service/trainers_posts_service'
 import { getUserByClientIdService, getUsuarioByIdService } from '../service/usuario_service';
 
-import { extendedComentarioReviews, extendedReviews } from '../interfaces/trainers_posts';
+import { TrainerPost, extendedComentarioReviews, extendedReviews } from '../interfaces/trainers_posts';
 
 
 
@@ -49,10 +49,10 @@ async function processReview(review: any) {
     
 
     if (reviewExtended.comentario_review) {
-        review.comentario_review = await processComments(review.comentario_review);
+        reviewExtended.comentario_review = await processComments(review.comentario_review);
     }
 
-    return review;
+    return reviewExtended;
 }
 
 // Función principal para obtener publicaciones de entrenadores
@@ -67,19 +67,25 @@ export async function getTrainerPosts(req: Request, res: Response): Promise<void
             return;
         }
 
-        const trainerPosts = await getTrainerPostService(userId, page, pageSize);
+        const trainerPosts: any [] = await getTrainerPostService(userId, page, pageSize);
+       
         if (!trainerPosts || trainerPosts.length === 0) {
             res.status(404).json({ message: 'No se encontraron publicaciones de entrenadores.' });
             return;
         }
+       
 
         for (const trainer of trainerPosts) {
             trainer.reviews = await Promise.all(
                 (await getTrainerReviewsService(trainer.trainer_id)).map(processReview)
             );
-        }
 
-        res.status(200).json(trainerPosts);
+        }
+        const trainerPostExtended: TrainerPost [] = {
+            ... trainerPosts
+        }
+        
+       res.status(200).json(trainerPostExtended);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });

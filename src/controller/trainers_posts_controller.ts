@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getTrainerPostService, getTrainerReviewsService } from '../service/trainers_posts_service'
 import { getUserByClientIdService, getUsuarioByIdService } from '../service/usuario_service';
 
-import { TrainerPost, extendedComentarioReviews, extendedReviews } from '../interfaces/trainers_posts';
+import {  extendedComentarioReviews, extendedReviews } from '../interfaces/trainers_posts';
 
 
 
@@ -81,11 +81,8 @@ export async function getTrainerPosts(req: Request, res: Response): Promise<void
             );
 
         }
-        const trainerPostExtended: TrainerPost [] = {
-            ... trainerPosts
-        }
-        
-       res.status(200).json(trainerPostExtended);
+       
+       res.status(200).json(trainerPosts);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });

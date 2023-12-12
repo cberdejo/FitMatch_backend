@@ -5,6 +5,8 @@ import cors from 'cors';
 
 import usuarioRouter from './routes/usuario_routes';
 import trainer_postsRouter from './routes/trainers_posts_routes';
+import reviewRouter from './routes/review_routes';
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -48,6 +50,7 @@ app.use(express.json());
 
 app.use('/', usuarioRouter);
 app.use('/', trainer_postsRouter);
+app.use('/', reviewRouter);
 
 
 /*

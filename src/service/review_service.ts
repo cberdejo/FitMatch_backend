@@ -63,5 +63,29 @@ async function dislikeReviewService(liked_id: number) {
     }
 }
 
+/**
+ * Add a review to the database.
+ *
+ * @param {number} trainerId - The ID of the trainer.
+ * @param {number} clientId - The ID of the client.
+ * @param {number} rating - The rating given to the trainer.
+ * @param {string} reviewContent - The content of the review.
+ * @return {Promise<any>} A promise that resolves to the created review object or null if there was an error.
+ */
+async function addReviewService(trainerId: number, clientId: number, rating: number, reviewContent: string) {
+    try {
+        return await db.reviews.create({
+            data: {
+                trainer_id: trainerId,
+                client_id: clientId,
+                rating: rating,
+                review_content: reviewContent
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al darle me gusta:', error);
+        return null;
+    }
+}
 
-export {likeReviewService, getLikeByUserId, dislikeReviewService}
+export {likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService}

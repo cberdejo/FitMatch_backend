@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { likeReviewService, getLikeByUserId, dislikeReviewService} from '../service/review_service'; 
+import { likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService} from '../service/review_service'; 
 
 async function likeReview(req: Request, res: Response) {
     try {
@@ -19,4 +19,21 @@ async function likeReview(req: Request, res: Response) {
     }
 }
 
-export { likeReview }
+async function addReview(req: Request, res: Response) {
+    try {
+        const { trainerId, clientId, rating, reviewContent } = req.body;
+        if (!trainerId || !clientId || !rating || !reviewContent) {
+            res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+            return;
+        }
+
+        const review = await addReviewService(trainerId, clientId, rating, reviewContent);
+        res.status(201).json(review);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+export { likeReview, addReview}

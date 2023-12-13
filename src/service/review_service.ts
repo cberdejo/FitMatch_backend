@@ -88,4 +88,106 @@ async function addReviewService(trainerId: number, clientId: number, rating: num
     }
 }
 
-export {likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService}
+/**
+ * Creates a comment for a review with the given review ID, user ID, and answer content.
+ *
+ * @param {number} review_id - The ID of the review.
+ * @param {number} user_id - The ID of the user.
+ * @param {string} answer - The content of the answer.
+ * @return {Promise<CommentReview | null>} A Promise that resolves to the created comment or null if an error occurs.
+ */
+async function answerReviewService(review_id: number, user_id: number, answer: string) {
+    try {
+        return await db.comentario_review.create({
+            data: {
+                review_id: review_id,
+                user_id: user_id,
+                content: answer
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al darle me gusta:', error);
+        return null;
+    }
+}
+
+/**
+ * Deletes a review from the database.
+ *
+ * @param {number} review_id - The ID of the review to be deleted.
+ * @return {Promise<any>} - A promise that resolves to the deleted review, or null if an error occurs.
+ */
+async function deleteReviewService(review_id: number) {
+    try {
+        return await db.reviews.delete({
+           where : {
+              review_id: review_id,
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al darle me gusta:', error);
+        return null;
+    }
+}
+
+/**
+ * Deletes a comment from the database.
+ *
+ * @param {number} comment_id - The ID of the comment to be deleted.
+ * @return {Promise<any>} - A Promise that resolves to the result of the deletion, or null if an error occurs.
+ */
+async function deleteCommentService(comment_id: number) {
+    try {
+        return await db.comentario_review.delete({
+           where : {
+              comment_id: comment_id,
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al darle me gusta:', error);
+        return null;
+    }
+}
+
+/**
+ * Retrieves a review by its ID from the database.
+ *
+ * @param {number} review_id - The ID of the review to retrieve.
+ * @return {Promise<Review | null>} A promise that resolves to the review object if found, or null if not found.
+ */
+async function getReviewByIdService(review_id: number) {
+    try {
+        return await db.reviews.findUnique({
+            where: {
+                review_id: review_id
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al obtener la review:', error);
+        return null;
+    }
+}
+
+async function getCommentByIdService(comment_id: number) {
+    try {
+        return await db.comentario_review.findUnique({
+            where: {
+                comment_id: comment_id
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al obtener el comentario:', error);
+        return null;
+    }
+}
+export {
+    likeReviewService,
+    getLikeByUserId,
+    dislikeReviewService,
+    addReviewService,
+    answerReviewService,
+    deleteReviewService,
+    deleteCommentService,
+    getReviewByIdService,
+    getCommentByIdService
+ }

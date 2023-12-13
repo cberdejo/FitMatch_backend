@@ -113,6 +113,48 @@ async function getUserByClientIdService(clientId: number) {
   }
 }
 
+/**
+ * Retrieves a client from the database based on the user ID.
+ *
+ * @param {number} userId - The ID of the user.
+ * @return {Promise<object>} Returns a promise that resolves to the client object found in the database.
+ * @throws {Error} Throws an error if the client could not be retrieved from the database.
+ */
+async function getClienteByUserIdService(userId: number) {
+  try {
+      return await db.clientes.findUnique({
+          where: {
+              user_id: userId,
+          },
+          
+      });
+    } catch (error) {
+        console.error('Error al obtener cliente por ID de usuario de la base de datos', error);
+        throw new Error('No se pudo obtener el cliente  por ID de usuario');
+    }  
+}
+
+/**
+ * Retrieves a trainer from the database by their trainer ID.
+ *
+ * @param {number} trainerId - The ID of the trainer to retrieve.
+ * @return {Promise<object>} The trainer object matching the given ID.
+ */
+async function getTrainerByTrainerIdService(trainerId: number) {
+  try {
+      return await db.entrenadores.findUnique({
+          where: {
+              trainer_id: trainerId,
+          },
+          
+      });
+    } catch (error) {
+        console.error('Error al obtener trainer por ID', error);
+        throw new Error('No se pudo obtener el trainer  por ID ');
+    }  
+}
+
+
 
 
 export {
@@ -121,6 +163,8 @@ export {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  getUserByClientIdService
+  getUserByClientIdService,
+  getClienteByUserIdService,
+  getTrainerByTrainerIdService
 
 };

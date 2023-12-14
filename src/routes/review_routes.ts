@@ -8,8 +8,8 @@ const reviewRouter: Router = express.Router();
 reviewRouter.post('/like',validateLikeReview, likeReview);
 
 reviewRouter.post('/review', validateAddReview, addReview);
-reviewRouter.delete('/review', validateDeleteReview, deleteReview);
+reviewRouter.delete('/review/:id', validateDeleteReview, deleteReview);
 
 reviewRouter.post('/comment',validateAnswerReview , answerReview);
-reviewRouter.delete('/comment', validateDeleteComment, deleteComment);
+reviewRouter.delete('/comment/:id', validateDeleteComment, deleteComment);
 export default reviewRouter;

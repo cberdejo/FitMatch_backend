@@ -62,15 +62,11 @@ export async function getTrainerPosts(req: Request, res: Response): Promise<void
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        if (!userId || isNaN(userId) || userId <= 0) {
-            res.status(400).json({ error: 'El ID del usuario proporcionado no es válido.' });
-            return;
-        }
 
         const trainerPosts: any [] = await getTrainerPostService(userId, page, pageSize);
        
         if (!trainerPosts || trainerPosts.length === 0) {
-            res.status(404).json({ message: 'No se encontraron publicaciones de entrenadores.' });
+            res.status(204).json([]);
             return;
         }
        

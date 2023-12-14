@@ -102,7 +102,7 @@ export async function validateAnswerReview(req: Request, res: Response, next: Ne
  * @return {Promise<void>} Returns nothing.
  */
 export async function validateDeleteReview(req: Request, res: Response, next: NextFunction){
-  const { reviewId } = req.body;
+  const  reviewId  = parseInt(req.params.id);
   if (
     isNaN(reviewId)
   ){
@@ -127,7 +127,7 @@ export async function validateDeleteReview(req: Request, res: Response, next: Ne
  * @return {Promise<void>} - Nothing is returned from this function.
  */
 export async function validateDeleteComment(req: Request, res: Response, next: NextFunction){
-  const { commentId } = req.body;
+  const commentId = parseInt(req.params.id);
   if (
     isNaN(commentId)
   ){

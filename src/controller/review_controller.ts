@@ -61,7 +61,7 @@ async function addReview(req: Request, res: Response) {
  */
 async function deleteReview (req: Request, res: Response) {
     try {
-        const { reviewId } = req.body;
+        const reviewId = parseInt(req.params.id);
         const review = await deleteReviewService(reviewId);
         res.status(201).json(review);
     } catch (error) {
@@ -100,7 +100,7 @@ async function answerReview(req: Request, res: Response) {
  */
 async function deleteComment(req: Request, res: Response) {
     try{
-        const { commentId } = req.body;
+        const commentId = parseInt(req.params.id);
         const comment = await deleteReviewService(commentId);
         res.status(201).json(comment);
     }catch(error){

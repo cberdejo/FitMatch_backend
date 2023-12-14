@@ -168,6 +168,12 @@ async function getReviewByIdService(review_id: number) {
     }
 }
 
+/**
+ * Retrieves a comment by its ID from the service.
+ *
+ * @param {number} comment_id - The ID of the comment to retrieve.
+ * @return {Promise<Comment | null>} A promise that resolves to the retrieved comment or null if an error occurs.
+ */
 async function getCommentByIdService(comment_id: number) {
     try {
         return await db.comentario_review.findUnique({

@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
-import { getClienteByUserIdService, getTrainerByTrainerIdService, getUsuarioByIdService } from '../service/usuario_service';
+import {  getTrainerByTrainerIdService, getUsuarioByIdService } from '../service/usuario_service';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
 
 
@@ -11,7 +11,7 @@ import { getCommentByIdService, getReviewByIdService } from '../service/review_s
  * @param {Response} res - The response object.
  * @param {NextFunction} next - The next middleware function.
  */
-export async function validateLike (req: Request, res: Response, next: NextFunction) {
+export async function validateLikeReview (req: Request, res: Response, next: NextFunction) {
 
     const { reviewId, userId } = req.body;
     if (
@@ -21,12 +21,6 @@ export async function validateLike (req: Request, res: Response, next: NextFunct
         res.status(400).json({ error: 'Datos incompletos o incorrectos' });
         return;
       }else{
-        const user = await getUsuarioByIdService(userId);
-        if (!user) {
-          res.status(400).json({ error: 'Usuario no encontrado con userId' });
-          return;
-        }
-        req.body.user = user;
         next();
       }
       
@@ -42,7 +36,7 @@ export async function validateLike (req: Request, res: Response, next: NextFunct
  * @param {NextFunction} next - The next function to be called.
  * @return {void} 
  */
-export async function validateReview  (req: Request, res: Response, next: NextFunction){
+export async function validateAddReview  (req: Request, res: Response, next: NextFunction){
 
     const { trainerId, userId, rating, reviewContent } = req.body;
     if (
@@ -57,14 +51,13 @@ export async function validateReview  (req: Request, res: Response, next: NextFu
         return;
       }else{
 
-        const cliente = await  getClienteByUserIdService(userId);
+   
         const trainer = await getTrainerByTrainerIdService(trainerId);
-        if (!cliente || !trainer) {
+        if ( !trainer) {
           res.status(400).json({ error: 'cliente no encontrado con userId' });
           return;
         }
-        req.body.clientId = cliente.client_id;
-    
+      
         next();
       }
       
@@ -78,7 +71,7 @@ export async function validateReview  (req: Request, res: Response, next: NextFu
  * @param {NextFunction} next - the next middleware function
  * @return {void} - no return value
  */
-export async function validateComment(req: Request, res: Response, next: NextFunction){
+export async function validateAnswerReview(req: Request, res: Response, next: NextFunction){
 
     const { reviewId, userId, answer } = req.body;
     if (
@@ -100,7 +93,15 @@ export async function validateComment(req: Request, res: Response, next: NextFun
       
 }
 
-export async function validateReviewId(req: Request, res: Response, next: NextFunction){
+/**
+ * Validates the deletion of a review.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function to be called in the middleware chain.
+ * @return {Promise<void>} Returns nothing.
+ */
+export async function validateDeleteReview(req: Request, res: Response, next: NextFunction){
   const { reviewId } = req.body;
   if (
     isNaN(reviewId)
@@ -117,7 +118,15 @@ export async function validateReviewId(req: Request, res: Response, next: NextFu
   }
 }
 
-export async function validateCommentId(req: Request, res: Response, next: NextFunction){
+/**
+ * Validates a comment ID before deleting it.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function to be called.
+ * @return {Promise<void>} - Nothing is returned from this function.
+ */
+export async function validateDeleteComment(req: Request, res: Response, next: NextFunction){
   const { commentId } = req.body;
   if (
     isNaN(commentId)

@@ -36,10 +36,14 @@ async function likeReview(req: Request, res: Response) {
  */
 async function addReview(req: Request, res: Response) {
     try {
-        const { trainerId,  rating, reviewContent } = req.body;
-        const clienteId = req.body.clientId;
-        
-        const review = await addReviewService(trainerId, clienteId, rating, reviewContent);
+        const { trainerId, userId, rating, reviewContent } = req.body;
+        const cliente = await getClienteByUserIdService(userId);
+        if (!cliente) {
+          res.status(400).json({ error: 'cliente no encontrado con userId' });
+          return;
+        }
+       
+        const review = await addReviewService(trainerId, cliente.client_id, rating, reviewContent);
         res.status(201).json(review);
 
     } catch (error) {

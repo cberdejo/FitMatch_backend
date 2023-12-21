@@ -6,6 +6,7 @@ import {
   getUsuariosService,
   getUsuarioByIdService,
   getUserByClientIdService,
+  getClienteByUserIdService,
  
 } from '../service/usuario_service';
 
@@ -13,6 +14,7 @@ import { checkPassword, hashPassword } from '../config/crypting';
 
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
+import { postImage } from '../config/cloudinary';
 
 
 
@@ -23,39 +25,32 @@ import { JwtPayload } from 'jsonwebtoken';
  */
 
 async function createUsuario(req: Request, res: Response) {
-  try {
-
-
-    const {data} = req.body; 
-
-    if (!data || !data.username || !data.email || !data.password || !data.profile_id || !data.birth || !data.profile_picture) {
-      console.log(data);
-      res.status(400).json({ error: 'Datos incompletos o incorrectos' });
-      return;
-    }
-
-    const crypt_data = {
-      username: data.username,
-      email: data.email,
-      profile_picture: data.profile_picture,
-      birth: data.birth,
-      profile_id: data.profile_id,
-      password: hashPassword(data.password),
-    };
+    try {
+      // Acceso directo a los campos del cuerpo de la solicitud
+      const { username, email, password, profile_id, birth } = req.body;
+      const profile_picture = req.file;
+  
+     
+      const cloudinary_profile_picture = await postImage(profile_picture);
+      const crypt_data = {
+        username: username,
+        email: email,
+        profile_picture: cloudinary_profile_picture,
+        birth: birth,
+        profile_id: profile_id,
+        password: hashPassword(password),
+      };
     
-    //comprobar que los datos son correctos
-
-
     const usuario = await createUsuarioService(crypt_data);
 
-   
-    res.status(201).json(usuario);
-    console.log("usuario creado");
+      res.status(201).json(usuario);
+      console.log("usuario creado");
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
   }
 }
+
 
 
 
@@ -110,8 +105,17 @@ async function verifyUsuarios(req: Request, res: Response) {
       //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
       if (passwordMatches) {
         // Crea un token JWT con la clave secreta+
-        const user = await getUsuariosByEmailService(email);
-        const token = jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        let token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+        const cliente = await getClienteByUserIdService(user.user_id);
+        if (cliente){
+          const ExtendedUser = {
+            client_id: cliente.client_id,
+            ...user,
+          }
+
+           token =  jwt.sign({ user: ExtendedUser }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        }
         res.status(200).json({ token });
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });

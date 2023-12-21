@@ -20,16 +20,20 @@ model clientes {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model comentario_review {
-  comment_id Int      @id @default(autoincrement())
-  review_id  Int
-  user_id    Int
-  content    String   @db.Text
-  timestamp  DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
-  reviews    reviews  @relation(fields: [review_id], references: [review_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_1")
-  usuario    usuario  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_2")
+  comment_id              Int                 @id @default(autoincrement())
+  review_id               Int
+  user_id                 Int
+  content                 String              @db.Text
+  timestamp               DateTime            @default(dbgenerated("(now())")) @db.Timestamp(0)
+  comment_responded       Int?
+  comentario_review       comentario_review?  @relation("comentario_reviewTocomentario_review", fields: [comment_responded], references: [comment_id], onDelete: Cascade, map: "comentario_comentario_ibfk_3")
+  other_comentario_review comentario_review[] @relation("comentario_reviewTocomentario_review")
+  reviews                 reviews             @relation(fields: [review_id], references: [review_id], onDelete: Cascade, map: "comentario_review_ibfk_1")
+  usuario                 usuario             @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comentario_review_ibfk_2")
 
   @@index([review_id], map: "review_id")
   @@index([user_id], map: "user_id")
+  @@index([comment_responded], map: "FK_comentario_review_comentario_review")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -138,8 +142,8 @@ model mensajes {
   receiver_id                           Int
   message_content                       String?   @db.Text
   timestamp                             DateTime? @db.Timestamp(0)
-  usuario_mensajes_sender_idTousuario   usuario   @relation("mensajes_sender_idTousuario", fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "mensajes_ibfk_1")
-  usuario_mensajes_receiver_idTousuario usuario   @relation("mensajes_receiver_idTousuario", fields: [receiver_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "mensajes_ibfk_2")
+  usuario_mensajes_sender_idTousuario   usuario   @relation("mensajes_sender_idTousuario", fields: [sender_id], references: [user_id], onDelete: Cascade, map: "mensajes_ibfk_1")
+  usuario_mensajes_receiver_idTousuario usuario   @relation("mensajes_receiver_idTousuario", fields: [receiver_id], references: [user_id], onDelete: Cascade, map: "mensajes_ibfk_2")
 
   @@index([receiver_id], map: "receiver_id")
   @@index([sender_id], map: "sender_id")

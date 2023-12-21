@@ -106,7 +106,7 @@ async function answerReviewService(review_id: number, user_id: number, answer: s
             }
         }); 
     } catch (error) {
-        console.error('Error al darle me gusta:', error);
+        console.error('Error al responder reseña:', error);
         return null;
     }
 }
@@ -186,6 +186,31 @@ async function getCommentByIdService(comment_id: number) {
         return null;
     }
 }
+
+/**
+ * Creates a new comment for a review in the comment_responded table.
+ *
+ * @param {number} review_id - The ID of the review.
+ * @param {number} comment_responded - The ID of the comment being responded to.
+ * @param {number} user_id - The ID of the user creating the comment.
+ * @param {string} answer - The content of the comment.
+ * @return {Promise<any>} - A promise that resolves to the created comment, or null if there was an error.
+ */
+async function answerCommentService(review_id: number, comment_responded: number, user_id: number, answer: string) {
+    try {
+        return await db.comentario_review.create({
+            data: {
+                comment_responded: comment_responded,
+                user_id: user_id,
+                content: answer,
+                review_id: review_id
+            }
+        }); 
+    } catch (error) {
+        console.error('Error al responder al comentario:', error);
+        return null;
+    }
+}
 export {
     likeReviewService,
     getLikeByUserId,
@@ -195,5 +220,6 @@ export {
     deleteReviewService,
     deleteCommentService,
     getReviewByIdService,
-    getCommentByIdService
+    getCommentByIdService,
+    answerCommentService
  }

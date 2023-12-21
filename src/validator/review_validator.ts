@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
-import {  getTrainerByTrainerIdService, getUsuarioByIdService } from '../service/usuario_service';
+import {  getTrainerByTrainerIdService } from '../service/usuario_service';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
 
 
@@ -73,7 +73,7 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
  */
 export async function validateAnswerReview(req: Request, res: Response, next: NextFunction){
 
-    const { reviewId, userId, answer } = req.body;
+  const { userId, reviewId,  answer } = req.body;
     if (
         isNaN(reviewId) ||
         isNaN(userId) ||
@@ -83,14 +83,45 @@ export async function validateAnswerReview(req: Request, res: Response, next: Ne
         return;
       }else{
         const review = await getReviewByIdService(reviewId);
-        const user = await getUsuarioByIdService(userId);
-        if (!review || !user) {
-          res.status(400).json({ error: 'review no encontrado con reviewId' });
+      
+        if (!review  ) {
+          res.status(400).json({ error: 'review no encontrado ' });
           return;
         }
         next();
       }
       
+}
+
+/**
+ * Validates an answer comment.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function.
+ * @return {Promise<void>} 
+ */
+export async function validateAnswerComment( req: Request, res: Response, next: NextFunction){
+
+    const {reviewId, commentId, userId, answer } = req.body;
+    if (
+        isNaN(reviewId) ||
+        isNaN(commentId) ||
+        isNaN(userId) ||
+        !answer
+      ) {
+        res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+        return;
+      }else{
+        const review = await getReviewByIdService(reviewId);
+        const comment = await getCommentByIdService(commentId);
+       
+        if (!comment  || !review) {
+          res.status(400).json({ error: 'review o comment no encontrado' });
+          return;
+        }
+        next();
+      }
 }
 
 /**

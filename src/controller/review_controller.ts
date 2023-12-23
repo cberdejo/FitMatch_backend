@@ -161,7 +161,7 @@ async function deleteComment(req: Request, res: Response) {
     try{
         const commentId = parseInt(req.params.id);
         const comment = await deleteReviewService(commentId);
-        res.status(201).json(comment);
+        res.status(200).json(comment);
     }catch(error){
         console.error(error);
         res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService, answerReviewService, deleteReviewService, answerCommentService} from '../service/review_service'; 
 import { getClienteByUserIdService, getUsuarioByIdService } from '../service/usuario_service';
-import { extendedComentarioReviews, extendedReviews } from '../interfaces/trainers_posts';
+import { extendedComentarioReviews, extendedReviews } from '../interfaces/plantilla_posts_interfaces';
 
 
 /**

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { emparejamientoInsert } from '../interfaces/usuarios_interfaces';
 
 
 /**
@@ -13,9 +14,18 @@ async function validateCreateUsuario(req: Request, res: Response, next: NextFunc
     const { username, email, password, profile_id, birth } = req.body;
     const profile_picture = req.file;
 
-    if (!username || !email || !password || !profile_id || !birth || !profile_picture) {
+    if (!username || !email || !password || !profile_id || !birth || !profile_picture ) {
         return res.status(400).json({ error: 'Datos incompletos o incorrectos' });
     }
+    
+  
+    //aquí podría comprobar si el email sigue un formato correcto, longitud de password, ...
+    /* expresión regular para email
+    if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
+        return res.status(400).json({ error: 'Email inválido' });
+    }*/
+
+   
     return next();
 }
 

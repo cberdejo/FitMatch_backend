@@ -4,7 +4,7 @@ import express from 'express';
 import cors from 'cors';
 
 import usuarioRouter from './routes/usuario_routes';
-import trainer_postsRouter from './routes/trainers_posts_routes';
+import trainer_postsRouter from './routes/plantilla_posts_routes';
 import reviewRouter from './routes/review_routes';
 
 

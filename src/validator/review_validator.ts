@@ -1,6 +1,6 @@
 import {Request, Response, NextFunction} from 'express';
-import {  getTrainerByTrainerIdService } from '../service/usuario_service';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
+import { getPlantillaById } from '../service/plantilla_posts_service';
 
 
 
@@ -27,7 +27,7 @@ export async function validateLikeReview (req: Request, res: Response, next: Nex
 }
 /**
  * Validates the review data received in the request body. 
- * Checks if the trainerId, clientId, rating, and reviewContent are valid.
+ * Checks if the userId, clientId, rating, and reviewContent are valid.
  * If any of the data is invalid, it sends a 400 error response with an error message.
  * Otherwise, it calls the next middleware function.
  *
@@ -38,9 +38,9 @@ export async function validateLikeReview (req: Request, res: Response, next: Nex
  */
 export async function validateAddReview  (req: Request, res: Response, next: NextFunction){
 
-    const { trainerId, userId, rating, reviewContent } = req.body;
+    const { templateId, userId, rating, reviewContent } = req.body;
     if (
-        isNaN(trainerId) ||
+        isNaN(templateId) ||
         isNaN(userId) ||
         isNaN(rating) ||
         rating < 0 ||
@@ -52,9 +52,9 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
       }else{
 
    
-        const trainer = await getTrainerByTrainerIdService(trainerId);
-        if ( !trainer) {
-          res.status(400).json({ error: 'cliente no encontrado con userId' });
+        const plantilla = await getPlantillaById(templateId);
+        if ( !plantilla) {
+          res.status(400).json({ error: 'plantilla no encontrado con userId' });
           return;
         }
       

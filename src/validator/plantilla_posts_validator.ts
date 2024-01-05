@@ -1,6 +1,6 @@
 import {Request, Response, NextFunction} from 'express';
 /**
- * Validates the request for getting trainer posts. 
+ * Validates the request for getting plantilla posts. 
  * Ensures that userId is a valid number and greater than 0.
  * Verifies that page and pageSize are positive integers.
  * If any validation fails, it responds with an appropriate error message and a 400 status code.
@@ -10,7 +10,9 @@ import {Request, Response, NextFunction} from 'express';
  * @param {NextFunction} next - The next function in the middleware chain.
  * @return {Promise<void>} - Returns nothing.
  */
-export async function validateGetTrainerPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+
+export async function validateGetPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const userId = parseInt(req.params.user_id);
         const page = parseInt(req.query.page as string) || 1;
@@ -36,4 +38,21 @@ export async function validateGetTrainerPosts(req: Request, res: Response, next:
         console.error(error);
         res.status(500).json({ error: 'Ocurrió un error al validar la solicitud.' });
     }
+    /*
+     if (emparejamientos.length < 1) {
+        return res.status(400).json({ error: 'Debes seleccionar al menos un emparejamiento' });
+    }
+    if (!Array.isArray(emparejamientos) || emparejamientos.length < 1) {
+        return res.status(400).json({ error: 'Debes seleccionar al menos un emparejamiento' });
+    }
+
+    const isValidEmparejamiento = (emparejamiento: emparejamientoInsert) => {
+        return emparejamiento.objetivos || emparejamiento.experiencia || emparejamiento.intereses;
+    };
+
+    if (!emparejamientos.every(isValidEmparejamiento)) {
+        return res.status(400).json({ error: 'Cada emparejamiento debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses' });
+    }
+
+    */
 }

@@ -1,5 +1,6 @@
 import db from "../config/database";
 
+
 /**
  * Crea un nuevo usuario en la base de datos.
  * @param data - Datos del usuario a crear.
@@ -16,6 +17,30 @@ async function createUsuarioService(data: any) {
   }
 }
 
+/**
+ * Creates a new set of etiquetas in the database.
+ *
+ * @param {emparejamientoInsert[]} emparejamientos - An array of emparejamiento objects to be inserted.
+ * @param {number} user_id - The ID of the user associated with the emparejamientos.
+ * @return {Promise<any>} A promise that resolves to the result of the database operation.
+ */
+/*
+async function assiganEtiquetasService(emparejamientos: emparejamientoInsert[], user_id: number) {
+  try {
+    const emparejamientosData = emparejamientos.map(emparejamiento => ({
+      ...emparejamiento,
+      user_id: user_id
+    }));
+
+    return db.etiquetas.createMany({
+      data: emparejamientosData,
+    });
+  } catch (error) {
+    console.error('Error al crear emparejamientos en la base de datos', error);
+    throw new Error('No se pudo crear el emparejamientos');
+  }
+}
+*/
 /**
  * Obtiene todos los usuarios de la base de datos.
  * @returns Promise con la lista de usuarios.
@@ -84,76 +109,6 @@ async function editUsuarioService(data: any) {
   }
 }
 
-/**
- * Retrieves a user by their client ID from the database.
- *
- * @param {number} clientId - The client ID of the user.
- * @return {Promise<object>} The user object if found.
- * @throws {Error} If the user is not found for the provided client ID.
- */
-async function getUserByClientIdService(clientId: number) {
-  try {
-      const cliente = await db.clientes.findUnique({
-          where: {
-              client_id: clientId,
-          },
-          include: {
-              usuario: true, // Asume que la relación se llama 'usuario'
-          },
-      });
-
-      if (cliente && cliente.usuario) {
-          return cliente.usuario;
-      } else {
-          throw new Error('Usuario no encontrado para el clientId proporcionado');
-      }
-  } catch (error) {
-      console.error('Error al obtener usuario por ID de la base de datos', error);
-      throw new Error('No se pudo obtener el usuario por ID');
-  }
-}
-
-/**
- * Retrieves a client from the database based on the user ID.
- *
- * @param {number} userId - The ID of the user.
- * @return {Promise<object>} Returns a promise that resolves to the client object found in the database.
- * @throws {Error} Throws an error if the client could not be retrieved from the database.
- */
-async function getClienteByUserIdService(userId: number) {
-  try {
-      return await db.clientes.findUnique({
-          where: {
-              user_id: userId,
-          },
-          
-      });
-    } catch (error) {
-        console.error('Error al obtener cliente por ID de usuario de la base de datos', error);
-        throw new Error('No se pudo obtener el cliente  por ID de usuario');
-    }  
-}
-
-/**
- * Retrieves a trainer from the database by their trainer ID.
- *
- * @param {number} trainerId - The ID of the trainer to retrieve.
- * @return {Promise<object>} The trainer object matching the given ID.
- */
-async function getTrainerByTrainerIdService(trainerId: number) {
-  try {
-      return await db.entrenadores.findUnique({
-          where: {
-              trainer_id: trainerId,
-          },
-          
-      });
-    } catch (error) {
-        console.error('Error al obtener trainer por ID', error);
-        throw new Error('No se pudo obtener el trainer  por ID ');
-    }  
-}
-
 
 
 
@@ -163,8 +118,5 @@ export {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  getUserByClientIdService,
-  getClienteByUserIdService,
-  getTrainerByTrainerIdService
 
 };

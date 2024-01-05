@@ -5,9 +5,6 @@ import {
   editUsuarioService,
   getUsuariosService,
   getUsuarioByIdService,
-  getUserByClientIdService,
-  getClienteByUserIdService,
- 
 } from '../service/usuario_service';
 
 import { checkPassword, hashPassword } from '../config/crypting';
@@ -27,7 +24,7 @@ import { postImage } from '../config/cloudinary';
 async function createUsuario(req: Request, res: Response) {
     try {
       // Acceso directo a los campos del cuerpo de la solicitud
-      const { username, email, password, profile_id, birth } = req.body;
+      const { username, email, password, profile_id, birth  } = req.body;
       const profile_picture = req.file;
   
      
@@ -42,9 +39,8 @@ async function createUsuario(req: Request, res: Response) {
       };
     
     const usuario = await createUsuarioService(crypt_data);
-
       res.status(201).json(usuario);
-      console.log("usuario creado");
+    console.log("usuario creado");
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
@@ -107,15 +103,8 @@ async function verifyUsuarios(req: Request, res: Response) {
         // Crea un token JWT con la clave secreta+
         let token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
 
-        const cliente = await getClienteByUserIdService(user.user_id);
-        if (cliente){
-          const ExtendedUser = {
-            client_id: cliente.client_id,
-            ...user,
-          }
-
-           token =  jwt.sign({ user: ExtendedUser }, process.env.JWT_SECRET!, { expiresIn: '1h' });
-        }
+        token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        
         res.status(200).json({ token });
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });
@@ -159,7 +148,7 @@ async function getUsuarioByEmail(req: Request, res: Response) {
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado' });
     } else {
-      res.status(200).json(usuario); // Envía el cliente como respuesta JSON
+      res.status(200).json(usuario); // Envía el usuario como respuesta JSON
     }
   } catch (error) {
     console.error('Error al obtener usuario ', error);
@@ -195,24 +184,6 @@ async function decodeToken(req: Request, res: Response) {
 }
 
 
-/**
- * Retrieves the username of a user based on their client ID.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} - A promise that resolves with the username of the user with the specified client ID.
- */
-async function getUserameByClienteId(req: Request, res: Response) {
-  try{
-      const id = parseInt(req.params.clienteId);
-      const user = await getUserByClientIdService(id);
-      console.log(user.username);
-      res.status(200).json(user.username);
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
-  }
-}
 
 
 
@@ -224,5 +195,4 @@ export {
   getUsuarios,
   verifyUsuarios,
   decodeToken,
-  getUserameByClienteId
 }

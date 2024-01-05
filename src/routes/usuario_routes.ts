@@ -1,5 +1,13 @@
 import express, { Router } from 'express';
-import { createUsuario, editUsuario, getUsuarioById, getUsuarioByEmail, getUsuarios, verifyUsuarios, decodeToken, getUserameByClienteId } from '../controller/usuario_controller';
+import { 
+    createUsuario,
+    editUsuario,
+    getUsuarioById,
+    getUsuarioByEmail,
+    getUsuarios,
+    verifyUsuarios,
+    decodeToken,
+    getUserameByClienteId } from '../controller/usuario_controller';
 import { upload } from '../config/cloudinary';
 import { validateCreateUsuario, validateGetUsuarioByEmail, validateGetUsuarioById, validateVerifyUsuarios } from '../validator/usuario_validators';
 

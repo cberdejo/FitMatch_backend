@@ -1,3 +1,4 @@
+import { usuario } from "@prisma/client";
 import db from "../config/database";
 
 
@@ -59,7 +60,7 @@ async function getUsuariosService() {
  * @param id - ID del usuario a buscar.
  * @returns Promise con el usuario encontrado.
  */
-async function getUsuarioByIdService(id: number) {
+async function getUsuarioByIdService(id: number): Promise<usuario | null > {
   try {
     return db.usuario.findUnique({
       where: {

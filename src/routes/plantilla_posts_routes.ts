@@ -1,9 +1,10 @@
 import express, { Router } from 'express';
-import { getPlantillaPosts } from '../controller/plantilla_posts_controller';
-import { validateGetPlantillaPosts } from '../validator/plantilla_posts_validator';
+import { getAllPlantillaPosts, getPlantillaPostsById } from '../controller/plantilla_posts_controller';
+import { validateGetPlantillaPostsById, validateGetAllPlantillaPosts } from '../validator/plantilla_posts_validator';
 
 const trainer_postsRouter: Router = express.Router();
 
-trainer_postsRouter.get('/trainersPosts/:user_id/', validateGetPlantillaPosts, getPlantillaPosts);
+trainer_postsRouter.get('/plantillaPosts/:user_id/', validateGetPlantillaPostsById, getPlantillaPostsById);
+trainer_postsRouter.get('/plantillaPosts/',validateGetAllPlantillaPosts,  getAllPlantillaPosts);
 
 export default trainer_postsRouter;

@@ -1,3 +1,4 @@
+import { reviews } from "@prisma/client";
 import db  from "../config/database";
 
 
@@ -63,28 +64,29 @@ async function dislikeReviewService(liked_id: number) {
     }
 }
 
+
 /**
- * Add a review to the database.
+ * Adds a review to the database.
  *
- * @param {number} trainerId - The ID of the trainer.
- * @param {number} clientId - The ID of the client.
- * @param {number} rating - The rating given to the trainer.
+ * @param {number} templateId - The ID of the template for the review.
+ * @param {number} userId - The ID of the user who wrote the review.
+ * @param {number} rating - The rating given to the review.
  * @param {string} reviewContent - The content of the review.
- * @return {Promise<any>} A promise that resolves to the created review object or null if there was an error.
+ * @return {Promise<reviews>} - A promise that resolves to the created review, or null if there was an error.
  */
-async function addReviewService(trainerId: number, clientId: number, rating: number, reviewContent: string) {
+async function addReviewService(templateId: number, userId: number, rating: number, reviewContent: string): Promise<reviews> {
     try {
         return await db.reviews.create({
             data: {
-                trainer_id: trainerId,
-                client_id: clientId,
+                user_id: templateId,
+                template_id: userId,
                 rating: rating,
                 review_content: reviewContent
             }
         }); 
     } catch (error) {
         console.error('Error al darle me gusta:', error);
-        return null;
+        throw error;
     }
 }
 

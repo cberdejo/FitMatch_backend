@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { getUsuarioByIdService } from '../service/usuario_service';
-import { getPlantillaPostService } from '../service/plantilla_posts_service';
+import { getPlantillaPostByIdService, getPlantillaPostService } from '../service/plantilla_posts_service';
 
 
 
@@ -21,22 +21,37 @@ export async function getUserById(userId: number) {
 
 
 // Función principal para obtener publicaciones de plantillas de entrenamiento
-export async function getPlantillaPosts(req: Request, res: Response): Promise<void> {
+export async function getPlantillaPostsById(req: Request, res: Response): Promise<void> {
     try {
         const userId = parseInt(req.params.user_id);
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await getPlantillaPostService(userId, page, pageSize);
+        const plantillaPosts = await getPlantillaPostByIdService(userId, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).json([]);
             return;
         }
+        res.status(200).json(plantillaPosts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
+    }
+}
 
-        // Si necesitas realizar alguna lógica adicional con las plantillas, puedes hacerlo aquí.
-        // Por ejemplo, si necesitas procesar las revisiones de cada plantilla, aquí sería el lugar.
-        // Por ahora, se asume que getPlantillaPostService ya maneja esto.
+export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
+    try {
+       
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+
+        const plantillaPosts = await getPlantillaPostService(page, pageSize);
+       
+        if (!plantillaPosts || plantillaPosts.length === 0) {
+            res.status(204).json([]);
+            return;
+        }
 
         res.status(200).json(plantillaPosts);
     } catch (error) {
@@ -44,3 +59,4 @@ export async function getPlantillaPosts(req: Request, res: Response): Promise<vo
         res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
     }
 }
+

@@ -1,6 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
-import { getPlantillaById } from '../service/plantilla_posts_service';
+import { getPlantillaByIdService } from '../service/plantilla_posts_service';
+
 
 
 
@@ -27,7 +28,7 @@ export async function validateLikeReview (req: Request, res: Response, next: Nex
 }
 /**
  * Validates the review data received in the request body. 
- * Checks if the userId, clientId, rating, and reviewContent are valid.
+ * Checks if the userId,  rating, and reviewContent are valid.
  * If any of the data is invalid, it sends a 400 error response with an error message.
  * Otherwise, it calls the next middleware function.
  *
@@ -52,12 +53,14 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
       }else{
 
    
-        const plantilla = await getPlantillaById(templateId);
+        const plantilla = await getPlantillaByIdService(templateId);
+       
+
         if ( !plantilla) {
           res.status(400).json({ error: 'plantilla no encontrado con userId' });
           return;
         }
-      
+        
         next();
       }
       
@@ -173,3 +176,4 @@ export async function validateDeleteComment(req: Request, res: Response, next: N
     next();
   }
 }
+

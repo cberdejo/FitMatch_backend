@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { emparejamientoInsert } from '../interfaces/usuarios_interfaces';
+
 
 
 /**
@@ -10,24 +10,46 @@ import { emparejamientoInsert } from '../interfaces/usuarios_interfaces';
  * @param {NextFunction} next - The next function to be called.
  * @return {Promise<void>} - This function does not return anything.
  */
-async function validateCreateUsuario(req: Request, res: Response, next: NextFunction){
+async function validateCreateUsuario(req: Request, res: Response, next: NextFunction) {
     const { username, email, password, profile_id, birth } = req.body;
-    const profile_picture = req.file;
+    //const profile_picture = req.file;
 
-    if (!username || !email || !password || !profile_id || !birth || !profile_picture ) {
-        return res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+    // Validar campos obligatorios
+    if (!username || !email || !password || !profile_id) {
+        return res.status(400).json({ error: 'Datos obligatorios incompletos o incorrectos' });
     }
-    
-  
-    //aquí podría comprobar si el email sigue un formato correcto, longitud de password, ...
-    /* expresión regular para email
+
+    // Validación de Email
     if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
         return res.status(400).json({ error: 'Email inválido' });
-    }*/
+    }
 
-   
+    // Validación de Fecha de Nacimiento (si se proporciona)
+    if (birth) {
+        const birthDate = new Date(birth);
+        const currentDate = new Date();
+
+        if (isNaN(birthDate.getTime())) {
+            return res.status(400).json({ error: 'Fecha de nacimiento inválida' });
+        }
+
+        if (birthDate > currentDate || new Date(birthDate.getFullYear() + 120, birthDate.getMonth(), birthDate.getDate()) < currentDate) {
+            return res.status(400).json({ error: 'Fecha de nacimiento no razonable' });
+        }
+    }
+
+    // Validación perfil
+    const profile = parseInt(profile_id);
+    if (isNaN(profile) || profile < 0) {
+        return res.status(400).json({ error: 'Perfil inválido' });
+    }
+
+
+  
+
     return next();
 }
+
 
 
 

@@ -22,30 +22,32 @@ import { postImage } from '../config/cloudinary';
  */
 
 async function createUsuario(req: Request, res: Response) {
-    try {
-      // Acceso directo a los campos del cuerpo de la solicitud
-      const { username, email, password, profile_id, birth  } = req.body;
+  try {
+      const { username, email, password, profile_id, birth } = req.body;
       const profile_picture = req.file;
-  
-     
-      const cloudinary_profile_picture = await postImage(profile_picture);
+
+      let cloudinary_profile_picture;
+      if (profile_picture) {
+          cloudinary_profile_picture = await postImage(profile_picture);
+      }
+
       const crypt_data = {
-        username: username,
-        email: email,
-        profile_picture: cloudinary_profile_picture,
-        birth: birth,
-        profile_id: profile_id,
-        password: hashPassword(password),
+          username: username,
+          email: email,
+          profile_picture: cloudinary_profile_picture || null,
+          birth: birth ? new Date(birth) : null,
+          profile_id: parseInt(profile_id),
+          password: hashPassword(password),
       };
-    
-    const usuario = await createUsuarioService(crypt_data);
+
+      const usuario = await createUsuarioService(crypt_data);
       res.status(201).json(usuario);
-    console.log("usuario creado");
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ error });
+      console.log(error);
+      res.status(500).json({ error });
   }
 }
+
 
 
 

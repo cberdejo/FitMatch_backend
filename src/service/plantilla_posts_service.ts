@@ -1,6 +1,86 @@
+import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
-import { plantillaPost } from "../interfaces/plantilla_posts_interfaces";
 
+/*
+[
+  {
+   
+    template_id: number,
+    user_id: number,
+    template_name: string,
+    description: string | null,
+    picture: string | null,
+
+
+    // Relación con reviews
+    reviews: [
+      {
+        // Campos de reviews
+        review_id: number,
+        user_id: number,
+        template_id: number,
+        rating: number,
+        review_content: string,
+        timestamp: Date,
+        // ... otros campos de reviews
+
+        // Usuario que escribió la reseña
+        usuario: {
+          username: string
+        },
+
+        // Relación con me_gusta
+        me_gusta: [
+          {
+            // Campos de me_gusta
+            liked_id: number,
+            review_id: number,
+            user_id: number
+            // ... otros campos de me_gusta
+          },
+          
+        ],
+
+        // Relación con comentario_review
+        comentario_review: [
+          {
+            // Campos de comentario_review
+            comment_id: number,
+            review_id: number,
+            user_id: number,
+            content: string,
+            timestamp: Date,
+            comment_responded: number | null,
+            // ... otros campos de comentario_review
+
+            // Usuario que escribió el comentario
+            usuario: {
+              username: string
+            }
+          },
+          // ... más objetos comentario_review
+        ]
+      },
+      // ... más objetos reviews
+    ],
+
+    // Relación con etiquetas
+    etiquetas: [
+      {
+        // Campos de etiquetas
+        tag_id: number,
+        template_id: number,
+        objetivos: string | null,
+        experiencia: string | null,
+        intereses: string | null
+        // ... otros campos de etiquetas
+      },
+     
+    ]
+  },
+  
+]
+*/
  
    /**
     * Retrieves a list of plantillaPost objects based on the provided user ID, page number,
@@ -11,11 +91,11 @@ import { plantillaPost } from "../interfaces/plantilla_posts_interfaces";
     * @param {number} pageSize - The number of items per page.
     * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
     */
-   async function getPlantillaPostService(user_id: number, page: number, pageSize: number): Promise<plantillaPost[]> {
+   async function getPlantillaPostByIdService(user_id: number, page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
     try {
         const offset = (page - 1) * pageSize;
 
-        const plantillas = await db.plantillas_de_entrenamiento.findMany({
+        return await db.plantillas_de_entrenamiento.findMany({
             where: {
                 user_id: user_id
             },
@@ -45,27 +125,53 @@ import { plantillaPost } from "../interfaces/plantilla_posts_interfaces";
             }
         });
 
-        // Mapea los resultados a la estructura de plantillaPost
-        return plantillas.map(plantilla => ({
-            user_id: plantilla.user_id,
-            picture: plantilla.picture,
-            description: plantilla.description,
-            reviews: plantilla.reviews?.map(review => ({
-                ...review,
-                username: review.usuario.username,
-                me_gusta: review.me_gusta,
-                comentario_review: review.comentario_review?.map(comentario => ({
-                    ...comentario,
-                    username: comentario.usuario.username
-                }))
-            })),
-            etiquetas: plantilla.etiquetas
-        }));
+       
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
+
+async function getPlantillaPostService(page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
+    try {
+        const offset = (page - 1) * pageSize;
+
+        return await db.plantillas_de_entrenamiento.findMany({
+            skip: offset,
+            take: pageSize,
+            include: {
+                reviews: {
+                    include: {
+                        usuario: {
+                            select: {
+                                username: true
+                            }
+                        },
+                        me_gusta: true,
+                        comentario_review: {
+                            include: {
+                                usuario: {
+                                    select: {
+                                        username: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                etiquetas: true
+            }
+        });
+
+   
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+
+
 
 
    
@@ -92,7 +198,7 @@ async function getReviewsByPlantillaIdService(template_id:number) {
     }
 }
 
-async function getPlantillaById(template_id:number) {
+async function getPlantillaByIdService(template_id:number) {
     try{
         return db.plantillas_de_entrenamiento.findUnique({
             where: {
@@ -107,7 +213,8 @@ async function getPlantillaById(template_id:number) {
 }
 
 export {
+    getPlantillaPostByIdService,
     getPlantillaPostService,
     getReviewsByPlantillaIdService,
-    getPlantillaById
+    getPlantillaByIdService
 }

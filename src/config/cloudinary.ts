@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { NextFunction, Request } from 'express';
 import multer from 'multer';
 
 cloudinary.config({
@@ -42,16 +41,3 @@ export const upload = multer({
     // Aquí puedes añadir más configuraciones, como filtro de tipos de archivos
 });
 
-export async function uploadToCloudinary(req: Request,  next: NextFunction) {
-  if (req.file) {
-      try {
-          const imageUrl = await postImage(req.file);
-          req.imageUrl = imageUrl; // Adjuntamos la URL al objeto request
-          next();
-      } catch (error) {
-          next(error);
-      }
-  } else {
-      next();
-  }
-}

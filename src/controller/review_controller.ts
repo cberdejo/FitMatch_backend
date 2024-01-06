@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService, answerReviewService, deleteReviewService, answerCommentService} from '../service/review_service'; 
-import { getClienteByUserIdService, getUsuarioByIdService } from '../service/usuario_service';
-import { extendedComentarioReviews, extendedReviews } from '../interfaces/plantilla_posts_interfaces';
+import {  getUsuarioByIdService } from '../service/usuario_service';
+import { reviews, usuario } from '@prisma/client';
 
 
 /**
@@ -38,17 +38,12 @@ async function likeReview(req: Request, res: Response) {
  */
 async function addReview(req: Request, res: Response) {
     try {
-        const { trainerId, userId, rating, reviewContent } = req.body;
-        const cliente = await getClienteByUserIdService(userId);
-        if (!cliente) {
-          res.status(400).json({ error: 'cliente no encontrado con userId' });
-          return;
-        }
-       
-        const review = await addReviewService(trainerId, cliente.client_id, rating, reviewContent);
-        const username = await getUsuarioByIdService(userId);
+        const { templateId, userId, rating, reviewContent } = req.body;
+  
+        const review: reviews= await addReviewService(templateId, userId, rating, reviewContent);
+        const user: usuario | null= await getUsuarioByIdService(userId);
 
-        if (!username) {
+        if (!user) {
             res.status(400).json({ error: 'username no encontrado con userId' });
             return;
         } 
@@ -57,8 +52,8 @@ async function addReview(req: Request, res: Response) {
             return;
         }
         
-        const reviewExtended : extendedReviews = {
-            username: username.username,
+        const reviewExtended  = {
+            username: user.username,
             ...review
 
         }
@@ -105,10 +100,10 @@ async function answerReview(req: Request, res: Response) {
             res.status(400).json({ error: 'user no encontrado con userId' });
             return;
         }
-        const extendedComment: extendedComentarioReviews = {
+        const extendedComment = {
             username: user.username,
             ...comment
-        }  as extendedComentarioReviews
+        }  
         
         res.status(200).json(extendedComment);
     }catch(error){
@@ -135,10 +130,10 @@ async function answerComment(req: Request, res: Response) {
             res.status(400).json({ error: 'user no encontrado con userId' });
             return;
         }
-        const extendedComment: extendedComentarioReviews = {
+        const extendedComment = {
             username: user.username,
             ...comment
-        }  as extendedComentarioReviews
+        }  
         
         res.status(200).json(extendedComment);
     

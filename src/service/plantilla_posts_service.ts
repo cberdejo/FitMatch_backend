@@ -1,5 +1,6 @@
 import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
+import { Etiqueta_In } from "../interfaces/etiquetas_input";
 
 /*
 [
@@ -198,6 +199,12 @@ async function getReviewsByPlantillaIdService(template_id:number) {
     }
 }
 
+/**
+ * Retrieves a plantilla (template) from the database based on the provided template ID.
+ *
+ * @param {number} template_id - The ID of the template to retrieve.
+ * @return {Promise} A promise that resolves to the retrieved plantilla.
+ */
 async function getPlantillaByIdService(template_id:number) {
     try{
         return db.plantillas_de_entrenamiento.findUnique({
@@ -212,9 +219,38 @@ async function getPlantillaByIdService(template_id:number) {
     }
 }
 
+async function postPlantillaService(plantilla: {
+    template_name: string; 
+    description: string; 
+    picture: string | null; 
+    etiquetas: Etiqueta_In[];
+  }) {
+      try {
+          // Código de la función
+      } catch (error) {
+          console.error(error);
+          throw error;
+      }
+  }
+ async function putPlantillaService(plantilla: plantillas_de_entrenamiento) {
+    try{
+        return db.plantillas_de_entrenamiento.update({
+            where: {
+                template_id: plantilla.template_id
+            },
+            data: plantilla
+        })
+    }
+    catch(error){
+        console.error(error);
+        throw error;
+    }
+}
 export {
     getPlantillaPostByIdService,
     getPlantillaPostService,
     getReviewsByPlantillaIdService,
-    getPlantillaByIdService
+    getPlantillaByIdService,
+    postPlantillaService,
+    putPlantillaService
 }

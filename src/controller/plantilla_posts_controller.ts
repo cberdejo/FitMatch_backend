@@ -1,24 +1,6 @@
 import { Request, Response } from 'express';
-import { getUsuarioByIdService } from '../service/usuario_service';
-import { getPlantillaPostByIdService, getPlantillaPostService } from '../service/plantilla_posts_service';
-
-
-
-/**
- * Retrieves a user by their ID.
- *
- * @param {number} userId - The ID of the user.
- * @return {Promise<any>} A promise that resolves with the user information, or null if an error occurs.
- */
-export async function getUserById(userId: number) {
-    try {
-        return await getUsuarioByIdService(userId);
-    } catch (error) {
-        console.error('Error al obtener el usuario:', error);
-        return null;
-    }
-}
-
+import { getPlantillaPostByIdService, getPlantillaPostService , postPlantillaService, putPlantillaService} from '../service/plantilla_posts_service';
+import { postImage } from '../config/cloudinary';
 
 // Función principal para obtener publicaciones de plantillas de entrenamiento
 export async function getPlantillaPostsById(req: Request, res: Response): Promise<void> {
@@ -40,6 +22,13 @@ export async function getPlantillaPostsById(req: Request, res: Response): Promis
     }
 }
 
+/**
+ * Retrieves all plantilla posts.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} A promise that resolves when the function completes.
+ */
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
        
@@ -57,6 +46,43 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
+    }
+}
+
+export async function createPlantillaPost(req: Request, res: Response): Promise<void> {
+    try {
+        const {template_name, description, etiquetas} = req.body;
+        const picture = req.file;
+
+        let cloudinary_picture;
+        if (picture) {
+            cloudinary_picture = await postImage(picture);
+        }
+
+        const data = {
+            template_name: template_name,
+            description: description,
+            picture: cloudinary_picture || null,
+            etiquetas: etiquetas
+            
+        };
+        
+        const response = await postPlantillaService(data);
+        res.status(201).json(response);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+export async function editPlantillaPosts(req: Request, res: Response): Promise<void> {
+    try {
+        const plantillaPost = req.body;
+        const response = await putPlantillaService(plantillaPost);
+        res.status(201).json(response);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
     }
 }
 

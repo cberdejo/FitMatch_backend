@@ -1,4 +1,5 @@
 import {Request, Response, NextFunction} from 'express';
+import { Etiqueta_In } from '../interfaces/etiquetas_input';
 /**
  * Validates the request for getting plantilla posts. 
  * Ensures that userId is a valid number and greater than 0.
@@ -75,20 +76,45 @@ export async function validateGetAllPlantillaPosts(req: Request, res: Response, 
    
 }
 
- /* Etiquetas
-     if (emparejamientos.length < 1) {
-        return res.status(400).json({ error: 'Debes seleccionar al menos un emparejamiento' });
+/**
+ * Validates the request body for creating a plantilla.
+ *
+ * @param {Request} req - the request object
+ * @param {Response} res - the response object
+ * @param {NextFunction} next - the next function to call
+ * @return {Promise<void>} - a promise that resolves to void
+ */
+export async function validateCreatePlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { template_name, description, etiquetas } = req.body;
+
+    if (!template_name) {
+        res.status(400).json({ error: 'El nombre de la plantilla no puede estar vacío.' });
+        return;
     }
-    if (!Array.isArray(emparejamientos) || emparejamientos.length < 1) {
-        return res.status(400).json({ error: 'Debes seleccionar al menos un emparejamiento' });
+    if (!description) {
+        res.status(400).json({ error: 'La descripción de la plantilla no puede estar vacía.' });
+        return;
+    }
+    if (!etiquetas) {
+        res.status(400).json({ error: 'Las etiquetas de la plantilla no pueden estar vacías.' });
+        return;
+    }
+   
+    if (!Array.isArray(etiquetas) || etiquetas.length < 1) {
+        res.status(400).json({ error: 'Debes seleccionar al menos una etiqueta.' });
+        return;
     }
 
-    const isValidEmparejamiento = (emparejamiento: emparejamientoInsert) => {
-        return emparejamiento.objetivos || emparejamiento.experiencia || emparejamiento.intereses;
+    const isValidEtiqueta = (etiqueta: Etiqueta_In) => {
+        return etiqueta.objectives || etiqueta.experience || etiqueta.interests || etiqueta.equipment;
     };
 
-    if (!emparejamientos.every(isValidEmparejamiento)) {
-        return res.status(400).json({ error: 'Cada emparejamiento debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses' });
+    if (!etiquetas.every(isValidEtiqueta)) {
+        res.status(400).json({ error: 'Cada etiqueta debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses, equipo.' });
+        return;
     }
-
-    */
+    
+    next();
+}
+   
+   

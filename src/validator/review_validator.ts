@@ -1,6 +1,6 @@
 import {Request, Response, NextFunction} from 'express';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
-import { getPlantillaByIdService } from '../service/plantilla_posts_service';
+import { plantillaService } from '../service/plantilla_posts_service';
 
 
 
@@ -53,7 +53,7 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
       }else{
 
    
-        const plantilla = await getPlantillaByIdService(templateId);
+        const plantilla = await plantillaService.getPlantillaById(templateId);
        
 
         if ( !plantilla) {

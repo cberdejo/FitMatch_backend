@@ -1,5 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import { Etiqueta_In } from '../interfaces/etiquetas_input';
+import { plantillaService } from '../service/plantilla_posts_service';
+
 /**
  * Validates the request for getting plantilla posts. 
  * Ensures that userId is a valid number and greater than 0.
@@ -85,7 +87,7 @@ export async function validateGetAllPlantillaPosts(req: Request, res: Response, 
  * @return {Promise<void>} - a promise that resolves to void
  */
 export async function validateCreatePlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { template_name, description, etiquetas } = req.body;
+    const { template_name, description, etiquetas, user_id } = req.body;
 
     if (!template_name) {
         res.status(400).json({ error: 'El nombre de la plantilla no puede estar vacío.' });
@@ -104,6 +106,15 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
         res.status(400).json({ error: 'Debes seleccionar al menos una etiqueta.' });
         return;
     }
+     
+    if (!user_id) {
+        res.status(400).json({ error: 'El ID del usuario no puede estar vacío.' });
+        return;
+    }
+    if (isNaN(user_id)) {
+        res.status(400).json({ error: 'El ID del usuario debe ser un número.' });
+        return;
+    }
 
     const isValidEtiqueta = (etiqueta: Etiqueta_In) => {
         return etiqueta.objectives || etiqueta.experience || etiqueta.interests || etiqueta.equipment;
@@ -116,5 +127,105 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
     
     next();
 }
+
+/**
+ * Validates an edit plantilla post.
+ *
+ * @param {Request} req - the request object
+ * @param {Response} res - the response object
+ * @param {NextFunction} next - the next middleware function
+ * @return {Promise<void>} a promise that resolves to void
+ */
+export async function validateEditPlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const template_id = parseInt(req.params.template_id);
+
+    try {
+        const plantilla = await plantillaService.getPlantillaById(template_id);
+
+        if (!plantilla) {
+            res.status(404).json({ error: 'Plantilla no encontrada.' });
+            return;
+        }
+
+        if (plantilla.public) {
+            res.status(403).json({ error: 'No se puede modificar una plantilla que ya es pública.' });
+            return;
+        }
+
+        next();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al validar la solicitud.' });
+    }
+}
+
+
+/**
+ * Validates the creation of a training session.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function.
+ * @return {void}
+ */
+export async function validateCreateSesionEntrenamiento(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { template_id, ejercicios } = req.body;
+
+    if (!template_id) {
+        res.status(400).json({ error: 'El template_id es obligatorio.' });
+        return;
+    }
+    if (isNaN(template_id)) {
+        res.status(400).json({ error: 'El template_id debe ser un número.' });
+        return;
+    }
+
+    if (!Array.isArray(ejercicios) || ejercicios.length === 0) {
+        res.status(400).json({ error: 'Debe incluir al menos un ejercicio.' });
+        return;
+    }
+
+    for (const ejercicio of ejercicios) {
+        const { target_sets, target_reps, target_time, armrap } = ejercicio;
+        const isSetsAndReps = target_sets != null && target_reps != null;
+        const isTimeBased = target_time != null;
+        const isAmrap = armrap != null;
+
+        if ([isSetsAndReps, isTimeBased, isAmrap].filter(Boolean).length !== 1) {
+            res.status(400).json({ error: 'Debe especificar exactamente uno de los siguientes: target_sets y target_reps, target_time o armrap.' });
+            return;
+        }
+    }
+
+    return next();
+}
+
+
+/**
+ * Validates the edit session of training.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function to call.
+ * @return {Promise<void>} - Resolves with void.
+ */
+export async function validateEditSesionEntrenamiento(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { template_id } = req.body; // Replace 'other_fields' with actual field names
+
+    if (!template_id) {
+        res.status(400).json({ error: 'El template_id es obligatorio.' });
+        return;
+    }
+    if (isNaN(template_id)) {
+        res.status(400).json({ error: 'El template_id debe ser un número.' });
+        return;
+    }
+
    
+
+    next();
+}
+   
+
+
    

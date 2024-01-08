@@ -45,6 +45,7 @@ model ejercicios_con_detalles {
   target_sets             Int?
   target_reps             Int?
   target_time             DateTime?               @db.Date
+  armrap                  Boolean?                @db.Bit(1)
   ejercicios              ejercicios              @relation(fields: [exercise_id], references: [exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_1")
   sesi_n_de_entrenamiento sesion_de_entrenamiento @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_2")
   ejercicios_entrada      ejercicios_entrada[]
@@ -109,9 +110,11 @@ model perfil {
 model plantillas_de_entrenamiento {
   template_id             Int                       @id @default(autoincrement())
   user_id                 Int
-  template_name           String                    @db.VarChar(255)
-  description             String?                   @db.Text
+  template_name           String?                   @db.VarChar(255)
   picture                 String?                   @db.VarChar(255)
+  description             String?                   @db.Text
+  public                  Boolean                   @default(false) @db.Bit(1)
+  hidden                  Boolean                   @default(false) @db.Bit(1)
   etiquetas               etiquetas[]
   reviews                 reviews[]
   rutinas_guardadas       rutinas_guardadas[]
@@ -210,9 +213,10 @@ model sesion_de_entrenamiento_entrada {
 model etiquetas {
   tag_id                      Int                         @id @default(autoincrement())
   template_id                 Int
-  objetivos                   String?                     @db.VarChar(255)
-  experiencia                 String?                     @db.VarChar(255)
-  intereses                   String?                     @db.VarChar(255)
+  experience                  String?                     @db.VarChar(255)
+  interests                   String?                     @db.VarChar(50)
+  objectives                  String?                     @db.VarChar(50)
+  equipment                   String?                     @db.VarChar(50)
   plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "FK_emparejamiento_plantillas_de_entrenamiento")
 
   @@index([template_id], map: "FK_emparejamiento_plantillas_de_entrenamiento")

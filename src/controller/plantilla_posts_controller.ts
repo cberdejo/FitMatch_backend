@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
-import { getPlantillaPostByIdService, getPlantillaPostService , postPlantillaService, putPlantillaService} from '../service/plantilla_posts_service';
+import {  plantillaService, sesionEntrenamientoService} from '../service/plantilla_posts_service';
 import { postImage } from '../config/cloudinary';
 
 // Función principal para obtener publicaciones de plantillas de entrenamiento
-export async function getPlantillaPostsById(req: Request, res: Response): Promise<void> {
+export async function getAllPlantillaPostsById(req: Request, res: Response): Promise<void> {
     try {
         const userId = parseInt(req.params.user_id);
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await getPlantillaPostByIdService(userId, page, pageSize);
+        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).json([]);
@@ -35,7 +35,7 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await getPlantillaPostService(page, pageSize);
+        const plantillaPosts = await plantillaService.getPlantillaPosts(null, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).json([]);
@@ -49,9 +49,16 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
     }
 }
 
+/**
+ * Creates a new plantilla post.
+ *
+ * @param {Request} req - The HTTP request object.
+ * @param {Response} res - The HTTP response object.
+ * @return {Promise<void>} A promise that resolves when the function is complete.
+ */
 export async function createPlantillaPost(req: Request, res: Response): Promise<void> {
     try {
-        const {template_name, description, etiquetas} = req.body;
+        const {template_name, description, etiquetas, user_id} = req.body;
         const picture = req.file;
 
         let cloudinary_picture;
@@ -63,11 +70,12 @@ export async function createPlantillaPost(req: Request, res: Response): Promise<
             template_name: template_name,
             description: description,
             picture: cloudinary_picture || null,
-            etiquetas: etiquetas
+            etiquetas: etiquetas,
+            user_id: user_id
             
         };
         
-        const response = await postPlantillaService(data);
+        const response = await plantillaService.postPlantilla(data);
         res.status(201).json(response);
     } catch (error) {
         console.error(error);
@@ -75,14 +83,99 @@ export async function createPlantillaPost(req: Request, res: Response): Promise<
     }
 }
 
+/**
+ * Edit the plantilla posts.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} A promise that resolves when the function is complete.
+ */
 export async function editPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
-        const plantillaPost = req.body;
-        const response = await putPlantillaService(plantillaPost);
-        res.status(201).json(response);
+        const template_id = parseInt(req.params.template_id);
+        const templateData = req.body; 
+
+        const updatedSession = await plantillaService.update(template_id, templateData);
+        res.json(updatedSession);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+        res.status(500).json({ error: 'Error al editar la sesión de entrenamiento.' });
     }
 }
 
+/**
+ * Deletes a plantilla post.
+ *
+ * @param {Request} req - the request object.
+ * @param {Response} res - the response object.
+ * @return {Promise<void>} Promise that resolves when the plantilla post is deleted.
+ */
+export async function deletePlantillaPost(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+        await plantillaService.delete(template_id);
+        res.status(200).json({ message: 'Plantilla eliminada con él.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar la plantilla.' });
+    }
+}
+
+
+/**
+ * Creates a session of training.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @return {Promise} The created session.
+ */
+export async function createSesionEntrenamiento(req: Request, res: Response): Promise<void> {
+    try {
+        const { template_id, ejercicios } = req.body;
+        const createdSession = await sesionEntrenamientoService.create(template_id, ejercicios);
+        res.status(201).json(createdSession);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al crear la sesión de entrenamiento.' });
+    }
+}
+
+
+/**
+ * Deletes a training session.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @return {Promise} A promise that resolves with the success message or rejects with an error message.
+ */
+export async function deleteSesionEntrenamiento(req: Request, res: Response) {
+    try {
+        const { session_id } = req.params;
+        await sesionEntrenamientoService.delete(session_id);
+        res.status(200).json({ message: 'Sesión de entrenamiento eliminada con éxito.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar la sesión de entrenamiento.' });
+    }
+}
+
+
+/**
+ * Edit a session of training.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} Promise that resolves when the session is edited.
+ */
+export async function editSesionEntrenamiento(req: Request, res: Response): Promise<void> {
+    try {
+        const session_id = parseInt(req.params.session_id);
+        const sessionData = req.body; 
+
+        const updatedSession = await sesionEntrenamientoService.update(session_id, sessionData);
+        res.json(updatedSession);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al editar la sesión de entrenamiento.' });
+    }
+}

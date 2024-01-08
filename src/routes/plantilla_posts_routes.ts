@@ -1,6 +1,25 @@
 import express, { Router } from 'express';
-import { createPlantillaPost, createSesionEntrenamiento, deleteSesionEntrenamiento, editPlantillaPosts, editSesionEntrenamiento, getAllPlantillaPosts, getAllPlantillaPostsById, deletePlantillaPost} from '../controller/plantilla_posts_controller';
-import { validateGetPlantillaPostsById, validateGetAllPlantillaPosts, validateCreatePlantillaPost, validateCreateSesionEntrenamiento, validateEditSesionEntrenamiento } from '../validator/plantilla_posts_validator';
+import { 
+    createPlantillaPost,
+    createSesionEntrenamiento,
+    deleteSesionEntrenamiento,
+    editPlantillaPosts,
+    editSesionEntrenamiento,
+    getAllPlantillaPosts,
+    getAllPlantillaPostsById,
+    deletePlantillaPost,
+    createEjercicio,
+    createRutinaGuardada,
+    deleteRutinaGuardada
+} from '../controller/plantilla_posts_controller';
+import { 
+    validateGetPlantillaPostsById, 
+    validateGetAllPlantillaPosts, 
+    validateCreatePlantillaPost, 
+    validateCreateSesionEntrenamiento, 
+    validateEditSesionEntrenamiento, 
+    validateCreateEjercicio, 
+    validateCreateRutinaGuardada} from '../validator/plantilla_posts_validator';
 import { upload } from '../config/cloudinary';
 
 const trainer_postsRouter: Router = express.Router();
@@ -17,6 +36,12 @@ trainer_postsRouter.post('/sesionEntrenamiento/', validateCreateSesionEntrenamie
 trainer_postsRouter.delete('/sesionEntrenamiento/:session_id', deleteSesionEntrenamiento);
 trainer_postsRouter.put('/sesionEntrenamiento/:session_id', validateEditSesionEntrenamiento, editSesionEntrenamiento);
 
+//Ejercicios
+trainer_postsRouter.post('/ejercicios/', validateCreateEjercicio, createEjercicio);
+
+//Rutinas guardadas
+trainer_postsRouter.post('/rutinasGuardadas/', validateCreateRutinaGuardada, createRutinaGuardada);
+trainer_postsRouter.delete('/rutinasGuardadas/:saved_id', deleteRutinaGuardada);
 
 
 export default trainer_postsRouter;

@@ -1,8 +1,21 @@
 import { Request, Response } from 'express';
-import {  plantillaService, sesionEntrenamientoService} from '../service/plantilla_posts_service';
+import {  ejercicioService, plantillaService, rutinaGuardadaService, sesionEntrenamientoService} from '../service/plantilla_posts_service';
 import { postImage } from '../config/cloudinary';
 
-// Función principal para obtener publicaciones de plantillas de entrenamiento
+
+
+// -------------------
+// Controladores para Plantillas de Entrenamiento
+// -------------------
+
+
+/**
+ * Retrieves all plantilla posts by user ID.
+ *
+ * @param {Request} req - the request object
+ * @param {Response} res - the response object
+ * @return {Promise<void>} - a promise that resolves to void
+ */
 export async function getAllPlantillaPostsById(req: Request, res: Response): Promise<void> {
     try {
         const userId = parseInt(req.params.user_id);
@@ -122,6 +135,11 @@ export async function deletePlantillaPost(req: Request, res: Response): Promise<
 }
 
 
+// -------------------
+// Controladores para Sesiones de Entrenamiento
+// -------------------
+
+
 /**
  * Creates a session of training.
  *
@@ -179,3 +197,69 @@ export async function editSesionEntrenamiento(req: Request, res: Response): Prom
         res.status(500).json({ error: 'Error al editar la sesión de entrenamiento.' });
     }
 }
+
+
+// -------------------
+// Controladores para Ejercicios
+// -------------------
+
+
+/**
+ * Creates a new ejercicio.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} A promise that resolves when the ejercicio is created.
+ */
+export async function createEjercicio(req: Request, res: Response): Promise<void> {
+    try {
+        const { name, description } = req.body;
+        const nuevoEjercicio = await ejercicioService.create({ name, description });
+        res.status(201).json(nuevoEjercicio);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al crear el ejercicio.' });
+    }
+}
+
+// -------------------
+// Controladores para Rutinas Guardadas
+// -------------------
+
+
+/**
+ * Creates a new saved routine.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} Promise that resolves when the routine is created.
+ */
+export async function createRutinaGuardada(req: Request, res: Response): Promise<void> {
+    try {
+        const { user_id, template_id } = req.body;
+        const nuevaRutina = await rutinaGuardadaService.create({ user_id, template_id });
+        res.status(201).json(nuevaRutina);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al guardar la rutina.' });
+    }
+}
+
+/**
+ * Deletes a saved routine.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} A Promise that resolves when the routine is deleted.
+ */
+export async function deleteRutinaGuardada(req: Request, res: Response): Promise<void> {
+    try {
+        const { saved_id } = req.params;
+        await rutinaGuardadaService.delete(parseInt(saved_id));
+        res.status(200).json({ message: 'Rutina eliminada correctamente.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar la rutina.' });
+    }
+}
+

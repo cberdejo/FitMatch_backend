@@ -304,3 +304,46 @@ export const sesionEntrenamientoService = {
     },
 };
 
+
+export const ejercicioService = {
+    /**
+     * Create a new record in the database.
+     *
+     * @param {object} data - The data object containing the name and description.
+     * @return {Promise<object>} The created record.
+     */
+    async create(data: { name: string; description: string; }) {
+        return db.ejercicios.create({
+            data,
+        });
+    },
+};
+
+export const rutinaGuardadaService = {
+    /**
+     * Creates a new entry in the database for a saved routine.
+     *
+     * @param {Object} data - An object containing the user_id and template_id.
+     * @return {Promise} A promise that resolves to the newly created entry.
+     */
+    async create(data: { user_id: number; template_id: number; }) {
+        return db.rutinas_guardadas.create({
+            data,
+        });
+    },
+
+    /**
+     * Deletes a record from the database with the given saved_id.
+     *
+     * @param {number} saved_id - The ID of the record to be deleted.
+     * @return {Promise<void>} - A Promise that resolves to undefined.
+     */
+    async delete(saved_id: number) {
+        return db.rutinas_guardadas.delete({
+            where: { saved_id },
+        });
+    },
+};
+
+
+

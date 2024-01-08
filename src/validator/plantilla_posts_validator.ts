@@ -1,6 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import { Etiqueta_In } from '../interfaces/etiquetas_input';
 import { plantillaService } from '../service/plantilla_posts_service';
+import { getUsuarioByIdService } from '../service/usuario_service';
 
 /**
  * Validates the request for getting plantilla posts. 
@@ -226,6 +227,53 @@ export async function validateEditSesionEntrenamiento(req: Request, res: Respons
     next();
 }
    
+/**
+ * Validates the creation of an ejercicio.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function.
+ * @return {Promise<void>} Returns nothing.
+ */
+export async function validateCreateEjercicio(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { name, description } = req.body;
+
+    if (!name) {
+        res.status(400).json({ error: 'El nombre del ejercicio es obligatorio.' });
+        return;
+    }
+
+    if (!description) {
+         res.status(400).json({ error: 'La descripción del ejercicio es obligatoria.' });
+        return;
+    }
+
+    next();
+}
+
+export async function validateCreateRutinaGuardada(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { user_id, template_id } = req.body;
+
+    if (!user_id) {
+        res.status(400).json({ error: 'El user_id es obligatorio.' });
+        return;
+    }
+
+    if (!template_id) {
+        res.status(400).json({ error: 'El template_id es obligatorio.' });
+        return;
+    }
+    const template = await plantillaService.getPlantillaById(template_id);
+    const user = await getUsuarioByIdService(user_id);
+
+    if (!template || !user) {
+        res.status(400).json({ error: 'Plantilla o usuario no encontrado.' });
+        return;
+    }
+
+
+    next();
+}
 
 
    

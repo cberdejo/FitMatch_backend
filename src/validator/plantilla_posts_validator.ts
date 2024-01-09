@@ -1,7 +1,13 @@
 import {Request, Response, NextFunction} from 'express';
 import { Etiqueta_In } from '../interfaces/etiquetas_input';
-import { plantillaService } from '../service/plantilla_posts_service';
+import { ejercicioDetallesService, plantillaService, sesionEntrenamientoService } from '../service/plantilla_posts_service';
 import { getUsuarioByIdService } from '../service/usuario_service';
+
+// -------------------
+// Validadores para PlantillaPost
+// -------------------
+
+
 
 /**
  * Validates the request for getting plantilla posts. 
@@ -160,6 +166,10 @@ export async function validateEditPlantillaPost(req: Request, res: Response, nex
     }
 }
 
+// -------------------
+// Validadores para SesionEntrenamiento
+// -------------------
+
 
 /**
  * Validates the creation of a training session.
@@ -226,7 +236,12 @@ export async function validateEditSesionEntrenamiento(req: Request, res: Respons
 
     next();
 }
-   
+
+// -------------------
+// Validadores para Ejercicio
+// -------------------
+
+
 /**
  * Validates the creation of an ejercicio.
  *
@@ -251,6 +266,20 @@ export async function validateCreateEjercicio(req: Request, res: Response, next:
     next();
 }
 
+// -------------------
+// Validadores para RutinaGuardada
+// -------------------
+
+
+
+/**
+ * Validates the request body for creating a saved routine.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next middleware function.
+ * @return {Promise<void>} A promise that resolves to void.
+ */
 export async function validateCreateRutinaGuardada(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { user_id, template_id } = req.body;
 
@@ -275,5 +304,115 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
     next();
 }
 
+// -------------------
+// Validadores para Sesion de Entrenamiento Entrada
+// -------------------
 
+
+// Función para validar el user_id y el session_id
+async function validateUserAndSession(user_id: number, session_id: number): Promise<string | null> {
+    if (!user_id || isNaN(user_id) || !session_id || isNaN(session_id)) {
+        return 'El user_id y el session_id son obligatorios y deben ser números.';
+    }
+
+    const userExists = await getUsuarioByIdService(user_id);
+    const sessionExists = await sesionEntrenamientoService.getById(session_id);
+
+    if (!userExists || !sessionExists) {
+        return 'Usuario o sesión de entrenamiento no encontrada.';
+    }
+
+    return null;
+}
+
+// Función para validar un ejercicio y sus sets
+async function validateEjercicio(ejercicio: any): Promise<string | null> {
+    if (!ejercicio.detailed_exercise_id) {
+        return 'El detailed_exercise_id es obligatorio en cada ejercicio.';
+    }
+
+    const detailedExercise = await ejercicioDetallesService.getById(ejercicio.detailed_exercise_id);
+    if (!detailedExercise) {
+        return 'Ejercicio con detailed_exercise_id no encontrado.';
+    }
+
+
+    for (const set of ejercicio.sets) {
+        // Si target_sets y target_reps o armrap son nulos, entonces reps debe ser nulo y time debe tener algún valor
+        if ((detailedExercise.target_sets === null && detailedExercise.target_reps === null) || detailedExercise.armrap === null) {
+            if (set.reps !== null || set.time === null) {
+               return 'Para ejercicios con target_sets y target_reps o armrap nulos, reps debe ser nulo y time debe tener algún valor.' ;
+               
+            }
+        }
+
+        // Si target_sets y target_reps o armrap no son nulos, entonces time debe ser nulo y reps debe tener algún valor
+        if (detailedExercise.target_sets !== null || detailedExercise.target_reps !== null || detailedExercise.armrap) {
+            if (set.time !== null || set.reps === null) {
+                return 'Para ejercicios con target_sets y target_reps o armrap no nulos, time debe ser nulo y reps debe tener algún valor.';
+               
+            }
+        }
+    }
+
+    return null;
+}
    
+
+/**
+ * Validates the session training input.
+ *
+ * @param {Request} req - the request object
+ * @param {Response} res - the response object
+ * @param {NextFunction} next - the next function in the middleware chain
+ * @return {Promise<void>} - a promise that resolves to void
+ */
+export async function validateSesionEntrenamientoEntrada(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { user_id, session_id, ejercicios } = req.body;
+
+    //user_id y session_id son obligatorios y deben ser números y existir un usuario y una sesion de entrenamiento en la bbd
+    const userAndSessionError = await validateUserAndSession(user_id, session_id);
+
+    if (userAndSessionError) {
+        res.status(400).json({ error: userAndSessionError });
+        return;
+    }
+
+    //ejercicios debe de ser un array mayor que 0
+    if (!Array.isArray(ejercicios) || ejercicios.length === 0) {
+        res.status(400).json({ error: 'Los ejercicios son obligatorios y deben ser un array.' });
+        return;
+    }
+
+    for (const ejercicio of ejercicios) {
+        //Se valida cada ejercicio: debe existir un ejercicio con detalles asociado al ejercicio de entrada y debe tener sets/reps apuntado o time
+        const ejercicioError = await validateEjercicio(ejercicio);
+        if (ejercicioError) {
+            res.status(400).json({ error: ejercicioError });
+            return;
+        }
+    }
+
+    next();
+}
+
+/**
+ * Validates the edit of a session training entry.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function to be called.
+ * @return {Promise<void>} Promise that resolves to undefined.
+ */
+export async function validateEditSesionEntrenamientoEntrada(req: Request, res: Response, next: NextFunction): Promise<void> {
+   const {entry_session_id} = req.body;
+    if (!entry_session_id) {
+        res.status(400).json({ error: 'El entry_session_id es obligatorio.' });
+        return;
+    }
+    if (isNaN(entry_session_id)) {
+        res.status(400).json({ error: 'El entry_session_id debe ser un número.' });
+        return;
+    }
+    next();
+}

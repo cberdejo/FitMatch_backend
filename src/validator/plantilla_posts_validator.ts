@@ -1,8 +1,59 @@
 import {Request, Response, NextFunction} from 'express';
 import { Etiqueta_In } from '../interfaces/etiquetas_input';
-import { ejercicioDetallesService, plantillaService, sesionEntrenamientoService } from '../service/plantilla_posts_service';
+import {  ejercicioDetallesService,  plantillaService, sesionEntrenamientoService } from '../service/plantilla_posts_service';
 import { getUsuarioByIdService } from '../service/usuario_service';
 
+// -------------------
+// Funciones auxiliares
+// -------------------
+
+
+// Función auxiliar para validar si un valor es un número válido
+function esNumeroValido(valor: any) {
+    return !isNaN(valor) && valor > 0;
+}
+
+function esFechaValida(fecha: any): boolean {
+    return !isNaN(Date.parse(fecha));
+}
+
+// Función auxiliar para validar tipos de ejercicio
+function validarTipoEjercicio(tipoEjercicio: string) {
+    const tiposValidos = ['reps', 'time', 'weight'];
+    return tiposValidos.includes(tipoEjercicio);
+}
+
+// Función auxiliar para validar campos de ejercicio según su tipo
+function validarCamposEjercicio(tipoEjercicio: string, ejercicio:any) {
+    switch (tipoEjercicio) {
+        case 'reps':
+            return ejercicio.target_sets != null && ejercicio.target_reps != null;
+        case 'time':
+            return ejercicio.target_time != null;
+        case 'weight':
+            return ejercicio.target_sets != null && ejercicio.target_reps != null;
+        default:
+            return false;
+    }
+}
+// Función auxiliar para validar campos de set
+function validarCamposSet(tipoEjercicio: string, set:any): string | null {
+    switch (tipoEjercicio) {
+        case 'reps':
+            if (set.reps === null) return 'Reps es obligatorio en cada set de fuerza.';
+            break;
+        case 'time':
+            if (set.time === null) return 'Time es obligatorio en cada set de tiempo.';
+            break;
+        case 'weight':
+            if (set.weight === null || set.reps === null) return 'Weight y Reps son obligatorios en cada set de peso.';
+            break;
+       
+        default:
+            break;
+    }
+    return null;
+}
 // -------------------
 // Validadores para PlantillaPost
 // -------------------
@@ -28,17 +79,15 @@ export async function validateGetPlantillaPostsById(req: Request, res: Response,
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        if (!userId || isNaN(userId) || userId <= 0) {
-            res.status(400).json({ error: 'El ID del usuario proporcionado no es válido.' });
+        if (!esNumeroValido(userId) ){
+            res.status(400).json({ error: 'El usuario proporcionado no es válido.' });
             return;
         }
-
-        if (isNaN(page) || page <= 0) {
+        if (!esNumeroValido(page)){
             res.status(400).json({ error: 'El número de página proporcionado no es válido.' });
             return;
         }
-
-        if (isNaN(pageSize) || pageSize <= 0) {
+        if (!esNumeroValido(pageSize)){
             res.status(400).json({ error: 'El tamaño de página proporcionado no es válido.' });
             return;
         }
@@ -67,12 +116,11 @@ export async function validateGetAllPlantillaPosts(req: Request, res: Response, 
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
      
-        if (isNaN(page) || page <= 0) {
+        if (!esNumeroValido(page)){
             res.status(400).json({ error: 'El número de página proporcionado no es válido.' });
             return;
         }
-
-        if (isNaN(pageSize) || pageSize <= 0) {
+        if (!esNumeroValido(pageSize)){
             res.status(400).json({ error: 'El tamaño de página proporcionado no es válido.' });
             return;
         }
@@ -118,7 +166,7 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
         res.status(400).json({ error: 'El ID del usuario no puede estar vacío.' });
         return;
     }
-    if (isNaN(user_id)) {
+    if (!esNumeroValido(user_id)) {
         res.status(400).json({ error: 'El ID del usuario debe ser un número.' });
         return;
     }
@@ -182,12 +230,8 @@ export async function validateEditPlantillaPost(req: Request, res: Response, nex
 export async function validateCreateSesionEntrenamiento(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { template_id, ejercicios } = req.body;
 
-    if (!template_id) {
-        res.status(400).json({ error: 'El template_id es obligatorio.' });
-        return;
-    }
-    if (isNaN(template_id)) {
-        res.status(400).json({ error: 'El template_id debe ser un número.' });
+    if (!esNumeroValido(template_id)) {
+        res.status(400).json({ error: 'El template_id es obligatorio y debe ser un número válido.' });
         return;
     }
 
@@ -197,20 +241,19 @@ export async function validateCreateSesionEntrenamiento(req: Request, res: Respo
     }
 
     for (const ejercicio of ejercicios) {
-        const { target_sets, target_reps, target_time, armrap } = ejercicio;
-        const isSetsAndReps = target_sets != null && target_reps != null;
-        const isTimeBased = target_time != null;
-        const isAmrap = armrap != null;
+        if (!validarTipoEjercicio(ejercicio.type)) {
+            res.status(400).json({ error: 'Tipo de ejercicio inválido.' });
+            return;
+        }
 
-        if ([isSetsAndReps, isTimeBased, isAmrap].filter(Boolean).length !== 1) {
-            res.status(400).json({ error: 'Debe especificar exactamente uno de los siguientes: target_sets y target_reps, target_time o armrap.' });
+        if (!validarCamposEjercicio(ejercicio.type, ejercicio)) {
+            res.status(400).json({ error: 'Campos requeridos faltantes o inválidos para el tipo de ejercicio.' });
             return;
         }
     }
 
-    return next();
+    next();
 }
-
 
 /**
  * Validates the edit session of training.
@@ -227,7 +270,7 @@ export async function validateEditSesionEntrenamiento(req: Request, res: Respons
         res.status(400).json({ error: 'El template_id es obligatorio.' });
         return;
     }
-    if (isNaN(template_id)) {
+    if (!esNumeroValido(template_id)) {
         res.status(400).json({ error: 'El template_id debe ser un número.' });
         return;
     }
@@ -251,7 +294,7 @@ export async function validateEditSesionEntrenamiento(req: Request, res: Respons
  * @return {Promise<void>} Returns nothing.
  */
 export async function validateCreateEjercicio(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { name, description } = req.body;
+    const { name, description,  } = req.body;
 
     if (!name) {
         res.status(400).json({ error: 'El nombre del ejercicio es obligatorio.' });
@@ -260,6 +303,35 @@ export async function validateCreateEjercicio(req: Request, res: Response, next:
 
     if (!description) {
          res.status(400).json({ error: 'La descripción del ejercicio es obligatoria.' });
+        return;
+    }
+
+    next();
+}
+
+
+export async function validateEjercicioMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { user_id, exercise_id, fecha_inicio, fecha_final } = req.query;
+
+    if ( !user_id || !esNumeroValido(user_id)) {
+        res.status(400).json({ error: 'El user_id es obligatorio y debe ser un número.' });
+        return;
+    }
+    if (!exercise_id  ||  !esNumeroValido(exercise_id)) {
+        res.status(400).json({ error: 'El exercise_id debe ser un número.' });
+        return;
+    }
+    if ( fecha_inicio && !esFechaValida(fecha_inicio)) {
+        res.status(400).json({ error: 'La fecha de inicio no es válida.' });
+        return;
+    }
+    if (fecha_final && !esFechaValida(fecha_final)) {
+        res.status(400).json({ error: 'La fecha final no es válida.' });
+        return;
+    }
+    
+    if ((fecha_inicio && fecha_final) && fecha_final < fecha_inicio) {
+        res.status(400).json({ error: 'La fecha de finalización debe ser posterior a la fecha de inicio.' });
         return;
     }
 
@@ -287,6 +359,10 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
         res.status(400).json({ error: 'El user_id es obligatorio.' });
         return;
     }
+    if (!esNumeroValido(user_id)) {
+        res.status(400).json({ error: 'El user_id debe ser un número.' });
+        return;
+    }
 
     if (!template_id) {
         res.status(400).json({ error: 'El template_id es obligatorio.' });
@@ -311,9 +387,7 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
 
 // Función para validar el user_id y el session_id
 async function validateUserAndSession(user_id: number, session_id: number): Promise<string | null> {
-    if (!user_id || isNaN(user_id) || !session_id || isNaN(session_id)) {
-        return 'El user_id y el session_id son obligatorios y deben ser números.';
-    }
+    
 
     const userExists = await getUsuarioByIdService(user_id);
     const sessionExists = await sesionEntrenamientoService.getById(session_id);
@@ -336,27 +410,23 @@ async function validateEjercicio(ejercicio: any): Promise<string | null> {
         return 'Ejercicio con detailed_exercise_id no encontrado.';
     }
 
+    const tipoEjercicio = detailedExercise.type;
+
+
+    if (validarTipoEjercicio(tipoEjercicio)) {
+        return 'Tipo de ejercicio inválido.';
+    }
 
     for (const set of ejercicio.sets) {
-        // Si target_sets y target_reps o armrap son nulos, entonces reps debe ser nulo y time debe tener algún valor
-        if ((detailedExercise.target_sets === null && detailedExercise.target_reps === null) || detailedExercise.armrap === null) {
-            if (set.reps !== null || set.time === null) {
-               return 'Para ejercicios con target_sets y target_reps o armrap nulos, reps debe ser nulo y time debe tener algún valor.' ;
-               
-            }
-        }
-
-        // Si target_sets y target_reps o armrap no son nulos, entonces time debe ser nulo y reps debe tener algún valor
-        if (detailedExercise.target_sets !== null || detailedExercise.target_reps !== null || detailedExercise.armrap) {
-            if (set.time !== null || set.reps === null) {
-                return 'Para ejercicios con target_sets y target_reps o armrap no nulos, time debe ser nulo y reps debe tener algún valor.';
-               
-            }
+        const error_mssg = validarCamposSet(tipoEjercicio, set);
+       if (error_mssg) {
+            return error_mssg;
         }
     }
 
     return null;
 }
+
    
 
 /**

@@ -46,6 +46,7 @@ model ejercicios_con_detalles {
   target_reps             Int?
   target_time             DateTime?               @db.Date
   armrap                  Boolean?                @db.Bit(1)
+  type                    String                  @db.VarChar(50)
   ejercicios              ejercicios              @relation(fields: [exercise_id], references: [exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_1")
   sesi_n_de_entrenamiento sesion_de_entrenamiento @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_2")
   ejercicios_entrada      ejercicios_entrada[]
@@ -146,6 +147,7 @@ model sets_ejercicios_entrada {
   reps               Int?
   video              String?             @db.VarChar(255)
   time               DateTime?           @db.Date
+  weight             Float?
   ejercicios_entrada ejercicios_entrada? @relation(fields: [entry_exercise_id], references: [entry_exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "sets_ejercicios_entrada_ibfk_1")
 
   @@index([entry_exercise_id], map: "entry_exercise_id")
@@ -160,6 +162,7 @@ model usuario {
   profile_picture                                                  String?                           @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
   profile_id                                                       Int                               @default(2)
   birth                                                            DateTime?                         @default(dbgenerated("(now())")) @db.Date
+  public                                                           Boolean                           @default(true) @db.Bit(1)
   comentario_review                                                comentario_review[]
   me_gusta                                                         me_gusta[]
   reviews                                                          reviews[]
@@ -186,11 +189,11 @@ model usuarios_bloqueados {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model sesion_de_entrenamiento {
   session_id                      Int                               @id @default(autoincrement())
-  template_id                     Int?
-  session_date                    DateTime?                         @db.Date
+  template_id                     Int
+  session_date                    DateTime                          @default(dbgenerated("(now())")) @db.Date
   notes                           String?                           @db.Text
   ejercicios_con_detalles         ejercicios_con_detalles[]
-  plantillas_de_entrenamiento     plantillas_de_entrenamiento?      @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
+  plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
   sesion_de_entrenamiento_entrada sesion_de_entrenamiento_entrada[]
 
   @@index([template_id], map: "template_id")
@@ -201,7 +204,7 @@ model sesion_de_entrenamiento_entrada {
   entry_session_id        Int                      @id @default(autoincrement())
   session_id              Int?
   user_id                 Int?
-  session_date            DateTime?                @default(dbgenerated("(now())")) @db.Date
+  session_date            DateTime                 @default(dbgenerated("(now())")) @db.Date
   ejercicios_entrada      ejercicios_entrada[]
   usuario                 usuario?                 @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sesion_de_entrenamiento_entrada_usuario")
   sesion_de_entrenamiento sesion_de_entrenamiento? @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_entrada_ibfk_1")

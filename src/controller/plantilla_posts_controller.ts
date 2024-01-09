@@ -222,6 +222,21 @@ export async function createEjercicio(req: Request, res: Response): Promise<void
     }
 }
 
+// En tu archivo de controladores (por ejemplo, ejerciciosController.js)
+export async function getEjerciciosMetrics(req: Request, res: Response) {
+    try {
+        const { user_id, exercise_id, fecha_inicio, fecha_final } = req.query;
+
+        console.log(user_id, exercise_id, fecha_inicio, fecha_final);
+        const ejercicios = await ejercicioService.getEjerciciosMetrics(0,0, new Date(), new Date());
+        res.json(ejercicios);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener los ejercicios.' });
+    }
+}
+
+
 // -------------------
 // Controladores para Rutinas Guardadas
 // -------------------

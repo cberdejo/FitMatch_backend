@@ -30,7 +30,15 @@ export async function postImage(file: any) {
       throw error;
     }
   }
-
+  export async function deleteImageFromCloudinary(publicId: string) {
+    try {
+      const result = await cloudinary.uploader.destroy(publicId);
+      console.log(result); // Puedes verificar la respuesta para confirmar la eliminación
+    } catch (error) {
+      console.error('Error al eliminar la imagen de Cloudinary:', error);
+      throw error; // Lanza el error para manejarlo más adelante
+    }
+  }
 // Configura el almacenamiento de Multer
 const storage = multer.memoryStorage(); // Almacena el archivo en la memoria, útil si luego quieres subirlo a otro servicio como Cloudinary
 

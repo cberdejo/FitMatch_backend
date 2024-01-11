@@ -40,12 +40,10 @@ model ejercicios_con_detalles {
   exercise_id             Int
   session_id              Int
   notes                   String?                 @db.Text
-  video                   String?                 @db.VarChar(255)
   intensity               Int?
   target_sets             Int?
   target_reps             Int?
   target_time             DateTime?               @db.Date
-  armrap                  Boolean?                @db.Bit(1)
   type                    String                  @db.VarChar(50)
   ejercicios              ejercicios              @relation(fields: [exercise_id], references: [exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_1")
   sesi_n_de_entrenamiento sesion_de_entrenamiento @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "ejercicios_con_detalles_ibfk_2")
@@ -190,6 +188,7 @@ model usuarios_bloqueados {
 model sesion_de_entrenamiento {
   session_id                      Int                               @id @default(autoincrement())
   template_id                     Int
+  session_name                    String                            @db.VarChar(50)
   session_date                    DateTime                          @default(dbgenerated("(now())")) @db.Date
   notes                           String?                           @db.Text
   ejercicios_con_detalles         ejercicios_con_detalles[]

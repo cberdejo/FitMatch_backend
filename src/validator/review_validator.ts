@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
-import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
 import { plantillaService } from '../service/plantilla_posts_service';
-import { esNumeroValido } from './funciones_auxiliares';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
+import { commentService, reviewService } from '../service/review_service';
 
 
 
@@ -21,6 +21,24 @@ export async function validateLikeReview(req: Request, res: Response, next: Next
     next();
   }
 }
+
+/**
+ * Validates the like comment request.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @param {NextFunction} next - The next function to call.
+ * @return {Promise<void>} - This function does not return a value.
+ */
+export async function validateLikeComment(req: Request, res: Response, next: NextFunction) {
+  const { commentId, userId } = req.body;
+  if (!esNumeroValido(commentId) || !esNumeroValido(userId)) {
+    res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+  } else {
+    next();
+  }
+}
+
 
 /**
  * Validates the review data received in the request body. 
@@ -67,8 +85,7 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
       }
       
       next();
-      
-      
+          
 }
 
 /**
@@ -90,7 +107,7 @@ export async function validateAnswerReview(req: Request, res: Response, next: Ne
         res.status(400).json({ error: 'Datos incompletos o incorrectos' });
         return;
       }else{
-        const review = await getReviewByIdService(reviewId);
+        const review = await reviewService.getById(reviewId);
       
         if (!review  ) {
           res.status(400).json({ error: 'review no encontrado ' });
@@ -101,36 +118,6 @@ export async function validateAnswerReview(req: Request, res: Response, next: Ne
       
 }
 
-/**
- * Validates an answer comment.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @param {NextFunction} next - The next function.
- * @return {Promise<void>} 
- */
-export async function validateAnswerComment( req: Request, res: Response, next: NextFunction){
-
-    const {reviewId, commentId, userId, answer } = req.body;
-    if (
-      !esNumeroValido(reviewId) ||
-      !esNumeroValido(commentId) ||
-      !esNumeroValido(userId) ||
-        !answer
-      ) {
-        res.status(400).json({ error: 'Datos incompletos o incorrectos' });
-        return;
-      }else{
-        const review = await getReviewByIdService(reviewId);
-        const comment = await getCommentByIdService(commentId);
-       
-        if (!comment  || !review) {
-          res.status(400).json({ error: 'review o comment no encontrado' });
-          return;
-        }
-        next();
-      }
-}
 
 /**
  * Validates the deletion of a review.
@@ -148,7 +135,7 @@ export async function validateDeleteReview(req: Request, res: Response, next: Ne
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
     return;
   }else{
-    const review = await getReviewByIdService(reviewId);
+    const review = await reviewService.getById(reviewId);
     if (!review) {
       res.status(400).json({ error: 'review no encontrado con reviewId' });
       return;
@@ -173,7 +160,7 @@ export async function validateDeleteComment(req: Request, res: Response, next: N
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
     return;
   }else{
-    const comment = await getCommentByIdService(commentId);
+    const comment = await commentService.getById(commentId);
     if (!comment) {
       res.status(400).json({ error: 'comment no encontrado con commentId' });
       return;

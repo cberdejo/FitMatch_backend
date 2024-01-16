@@ -1,5 +1,5 @@
-import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
+import { aplanarRespuesta } from "../utils/funciones_auxiliares_services";
 
 
 export const rutinaGuardadaService = {
@@ -28,15 +28,8 @@ export const rutinaGuardadaService = {
     },
 
 
-    /**
-     * Retrieves a list of training templates that have been saved by a user.
-     *
-     * @param {number} userId - The ID of the user.
-     * @param {number} page - The page number.
-     * @param {number} pageSize - The number of items per page.
-     * @returns {Promise<plantillas_de_entrenamiento[]>} - A promise that resolves to an array of training templates.
-     */
-    async getGuardadasPlantillaPosts(userId: number, page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
+   
+    async getGuardadasPlantillaPosts(userId: number, page: number, pageSize: number) {
         try {
             const offset = (page - 1) * pageSize;
     
@@ -52,7 +45,7 @@ export const rutinaGuardadaService = {
             const plantillasIds = plantillasGuardadas.map(pg => pg.template_id);
     
             // Luego, obtenemos las plantillas de entrenamiento correspondientes a esos IDs
-            return await db.plantillas_de_entrenamiento.findMany({
+            const plantillas =  await db.plantillas_de_entrenamiento.findMany({
                 where: { template_id: { in: plantillasIds } },
                 include: {
                     reviews: {
@@ -62,14 +55,15 @@ export const rutinaGuardadaService = {
                                     username: true
                                 }
                             },
-                            me_gusta: true,
+                            me_gusta_reviews: true,
                             comentario_review: {
                                 include: {
                                     usuario: {
                                         select: {
                                             username: true
                                         }
-                                    }
+                                    },
+                                    me_gusta_comentarios: true
                                 }
                             }
                         }
@@ -77,6 +71,9 @@ export const rutinaGuardadaService = {
                     etiquetas: true
                 }
             });
+
+            return plantillas.map(aplanarRespuesta);
+
         } catch (error) {
             console.error(error);
             throw error;

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { esFechaValida, esNumeroValido } from "./funciones_auxiliares";
+import { esFechaValida, esNumeroValido } from "../utils/funciones_auxiliares_validator";
 
 
 /**

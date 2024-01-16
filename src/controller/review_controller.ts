@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { likeReviewService, getLikeByUserId, dislikeReviewService, addReviewService, answerReviewService, deleteReviewService, answerCommentService} from '../service/review_service'; 
+import { commentService, likeCommentService, likeReviewService, reviewService, } from '../service/review_service'; 
 import {  getUsuarioByIdService } from '../service/usuario_service';
 import { reviews, usuario } from '@prisma/client';
 
@@ -15,12 +15,12 @@ async function likeReview(req: Request, res: Response) {
     try {
         const { reviewId, userId } = req.body;
 
-        const likeExistente = await getLikeByUserId(reviewId, userId);
+        const likeExistente = await likeReviewService.getLikeByUserId(reviewId, userId);
         let like;
         if (likeExistente) {
-          like = await dislikeReviewService(likeExistente.liked_id);
+          like = await likeReviewService.dislike(likeExistente.liked_review_id);
         }else{
-          like = await likeReviewService(reviewId, userId);
+          like = await likeReviewService.like(reviewId, userId);
         }
         res.status(200).json(like);
     } catch (error) {
@@ -28,6 +28,26 @@ async function likeReview(req: Request, res: Response) {
         res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
     }
 }
+
+
+async function likeComment(req: Request, res: Response) {
+    try {
+        const { commentId, userId } = req.body;
+
+        const likeExistente = await likeCommentService.getLikeByUserId(commentId, userId);
+        let like;
+        if (likeExistente) {
+          like = await likeCommentService.dislike(likeExistente.liked_comment_id);
+        }else{
+          like = await likeCommentService.like(commentId, userId);
+        }
+        res.status(200).json(like);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
 
 /**
  * Adds a review to the system.
@@ -40,9 +60,9 @@ async function addReview(req: Request, res: Response) {
     try {
         const { templateId, userId, rating, reviewContent } = req.body;
   
-        const review: reviews= await addReviewService(templateId, userId, rating, reviewContent);
+        const review: reviews= await reviewService.create(templateId, userId, rating, reviewContent);
         const user: usuario | null= await getUsuarioByIdService(userId);
-
+ 
         if (!user) {
             res.status(400).json({ error: 'username no encontrado con userId' });
             return;
@@ -75,7 +95,7 @@ async function addReview(req: Request, res: Response) {
 async function deleteReview (req: Request, res: Response) {
     try {
         const reviewId = parseInt(req.params.id);
-        const review = await deleteReviewService(reviewId);
+        const review = await reviewService.delete(reviewId);
         res.status(200).json(review);
     } catch (error) {
         console.error(error);
@@ -93,7 +113,7 @@ async function deleteReview (req: Request, res: Response) {
 async function answerReview(req: Request, res: Response) {
     try{
         const { userId, reviewId, answer } = req.body;
-        const comment = await answerReviewService(reviewId, userId, answer);
+        const comment = await commentService.create(reviewId, userId, answer);
 
         const user = await getUsuarioByIdService(userId);
         if (!user) {
@@ -113,36 +133,6 @@ async function answerReview(req: Request, res: Response) {
    
 }
 
-/**
- * Handles the request to answer a comment.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} - A promise that resolves with no value.
- */
-async function answerComment(req: Request, res: Response) {
-    try{
-        const { reviewId, commentId, userId, answer } = req.body;
-
-        const comment = await answerCommentService(reviewId, commentId, userId, answer);
-        const user = await getUsuarioByIdService(userId);
-        if (!user) {
-            res.status(400).json({ error: 'user no encontrado con userId' });
-            return;
-        }
-        const extendedComment = {
-            username: user.username,
-            ...comment
-        }  
-        
-        res.status(200).json(extendedComment);
-    
-    }catch(error){
-        console.error(error);
-        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
-    }
-   
-}
 
 
 /**
@@ -155,7 +145,7 @@ async function answerComment(req: Request, res: Response) {
 async function deleteComment(req: Request, res: Response) {
     try{
         const commentId = parseInt(req.params.id);
-        const comment = await deleteReviewService(commentId);
+        const comment = await commentService.delete(commentId);
         res.status(200).json(comment);
     }catch(error){
         console.error(error);
@@ -163,4 +153,4 @@ async function deleteComment(req: Request, res: Response) {
     }
 }
 
-export { likeReview, addReview, answerReview, deleteReview, deleteComment, answerComment };
+export { likeReview, addReview, answerReview, deleteReview, deleteComment, likeComment };

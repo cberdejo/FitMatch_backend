@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import { Etiqueta_In } from '../interfaces/etiquetas_input';
 import {plantillaService } from '../service/plantilla_posts_service';
-import {esNumeroValido } from './funciones_auxiliares';
+import {esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 

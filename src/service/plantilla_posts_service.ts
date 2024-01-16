@@ -1,6 +1,7 @@
 import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 import { Etiqueta_In } from "../interfaces/etiquetas_input";
+import { aplanarRespuesta } from "../utils/funciones_auxiliares_services";
 
 /*
 [
@@ -93,13 +94,13 @@ export const plantillaService = {
     * @param {number} pageSize - The number of items per page.
     * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
     */
-    async  getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
+    async getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number) {
       try {
           const offset = (page - 1) * pageSize;
           const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
   
-          return await db.plantillas_de_entrenamiento.findMany({
-              where: whereClause ,
+          const plantillaPosts = await db.plantillas_de_entrenamiento.findMany({
+              where: whereClause,
               skip: offset,
               take: pageSize,
               include: {
@@ -110,14 +111,15 @@ export const plantillaService = {
                                   username: true
                               }
                           },
-                          me_gusta: true,
+                          me_gusta_reviews: true,
                           comentario_review: {
                               include: {
                                   usuario: {
                                       select: {
                                           username: true
                                       }
-                                  }
+                                  },
+                                  me_gusta_comentarios: true
                               }
                           }
                       }
@@ -125,11 +127,42 @@ export const plantillaService = {
                   etiquetas: true
               }
           });
+  
+          // Aplanar la estructura de los datos y agregar el atributo "username"
+          const flattenedPosts = plantillaPosts.map(aplanarRespuesta);
+          
+          /*plantillaPosts.map(post => {
+            const reviews = post.reviews.map(review => {
+                const { usuario, ...restReview } = review; // Separar el objeto "usuario"
+                const comentario_review = review.comentario_review.map(comment => {
+                    const { usuario: usuarioComment, ...restComment } = comment; // Separar el objeto "usuario" de cada comentario
+                    return {
+                        ...restComment,
+                        username: usuarioComment.username // Agregar el username directamente al comentario
+                    };
+                });
+    
+                return {
+                    ...restReview,
+                    username: usuario.username, // Agregar el username directamente a la review
+                    comentario_review
+                };
+            });
+    
+            return {
+                ...post,
+                reviews
+            };
+        });
+        */
+  
+          return flattenedPosts;
       } catch (error) {
           console.error(error);
           throw error;
       }
   },
+  
 
 /**
  * Retrieves reviews by plantilla id from the database.
@@ -144,7 +177,7 @@ async  getReviewsByPlantillaId(template_id:number) {
                 template_id:template_id,
             },
             include: {
-                me_gusta: true, 
+                me_gusta_reviews: true, 
                 comentario_review: true, 
                 }, 
         })

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { esNumeroValido } from "./funciones_auxiliares";
+import { esNumeroValido } from "../utils/funciones_auxiliares_validator";
 import { plantillaService } from "../service/plantilla_posts_service";
 import { getUsuarioByIdService } from "../service/usuario_service";
 

@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { plantillaService } from '../service/plantilla_posts_service';
 import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
+import { plantillas_de_entrenamiento } from '@prisma/client';
 
 
 
@@ -19,26 +20,26 @@ import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
  */
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
-       
         const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-        const isPublic = req.query.isPublic === 'true';
+        const isPublic = req.query.isPublic !== 'false';
         const isHidden = req.query.isHidden === 'true';
+        
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
+        const plantillaPosts:plantillas_de_entrenamiento[] = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
-            res.status(204).json([]);
+            res.status(204).send();
             return;
         }
-
         res.status(200).json(plantillaPosts);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
     }
 }
+
 
 /**
  * Creates a new plantilla post.

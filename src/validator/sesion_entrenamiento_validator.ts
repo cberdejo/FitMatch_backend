@@ -2,7 +2,7 @@
 
 
 import { NextFunction, Request, Response } from "express";
-import { esNumeroValido, validarCamposEjercicio, validarTipoEjercicio } from "./funciones_auxiliares";
+import { esNumeroValido, validarCamposEjercicio, validarTipoEjercicio } from "../utils/funciones_auxiliares_validator";
 
 
 /**

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { validarCamposSet, validarTipoEjercicio } from "./funciones_auxiliares";
+import { validarCamposSet, validarTipoEjercicio } from "../utils/funciones_auxiliares_validator";
 
 import { getUsuarioByIdService } from "../service/usuario_service";
 import { sesionEntrenamientoService } from "../service/sesion_entrenamiento_service";

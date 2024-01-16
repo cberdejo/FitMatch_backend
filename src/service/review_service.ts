@@ -78,14 +78,14 @@ async function addReviewService(templateId: number, userId: number, rating: numb
     try {
         return await db.reviews.create({
             data: {
-                user_id: templateId,
-                template_id: userId,
+                user_id: userId,
+                template_id: templateId,
                 rating: rating,
                 review_content: reviewContent
             }
         }); 
     } catch (error) {
-        console.error('Error al darle me gusta:', error);
+        console.error('Error al crear review:', error);
         throw error;
     }
 }
@@ -108,7 +108,7 @@ async function answerReviewService(review_id: number, user_id: number, answer: s
             }
         }); 
     } catch (error) {
-        console.error('Error al responder reseña:', error);
+        console.error('Error al responder review:', error);
         return null;
     }
 }

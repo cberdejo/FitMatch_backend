@@ -25,13 +25,13 @@ import {esNumeroValido } from './funciones_auxiliares';
  */
 
 
-export async function validateGetPlantillaPostsById(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function validateGetPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const userId = parseInt(req.params.user_id);
+        const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        if (!esNumeroValido(userId) ){
+        if (userId != null && !esNumeroValido(userId) ){
             res.status(400).json({ error: 'El usuario proporcionado no es válido.' });
             return;
         }
@@ -53,37 +53,6 @@ export async function validateGetPlantillaPostsById(req: Request, res: Response,
 }
 
 
-/**
- * Validates the parameters for the getAllPlantillaPosts function.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @param {NextFunction} next - The next function.
- * @return {Promise<void>} A promise that resolves to nothing.
- */
-export async function validateGetAllPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-       
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
-
-     
-        if (!esNumeroValido(page)){
-            res.status(400).json({ error: 'El número de página proporcionado no es válido.' });
-            return;
-        }
-        if (!esNumeroValido(pageSize)){
-            res.status(400).json({ error: 'El tamaño de página proporcionado no es válido.' });
-            return;
-        }
-
-        next();
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ocurrió un error al validar la solicitud.' });
-    }
-   
-}
 
 /**
  * Validates the request body for creating a plantilla.

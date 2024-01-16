@@ -8,31 +8,7 @@ import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
 
 
 
-/**
- * Retrieves all plantilla posts by user ID.
- *
- * @param {Request} req - the request object
- * @param {Response} res - the response object
- * @return {Promise<void>} - a promise that resolves to void
- */
-export async function getAllPlantillaPostsById(req: Request, res: Response): Promise<void> {
-    try {
-        const userId = parseInt(req.params.user_id);
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, page, pageSize);
-       
-        if (!plantillaPosts || plantillaPosts.length === 0) {
-            res.status(204).json([]);
-            return;
-        }
-        res.status(200).json(plantillaPosts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
-    }
-}
 
 /**
  * Retrieves all plantilla posts.
@@ -44,10 +20,13 @@ export async function getAllPlantillaPostsById(req: Request, res: Response): Pro
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
        
+        const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+        const isPublic = req.query.isPublic === 'true';
+        const isHidden = req.query.isHidden === 'true';
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await plantillaService.getPlantillaPosts(null, page, pageSize);
+        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).json([]);

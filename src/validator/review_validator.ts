@@ -1,6 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import { getCommentByIdService, getReviewByIdService } from '../service/review_service';
 import { plantillaService } from '../service/plantilla_posts_service';
+import { esNumeroValido } from './funciones_auxiliares';
 
 
 
@@ -12,20 +13,15 @@ import { plantillaService } from '../service/plantilla_posts_service';
  * @param {Response} res - The response object.
  * @param {NextFunction} next - The next middleware function.
  */
-export async function validateLikeReview (req: Request, res: Response, next: NextFunction) {
-
-    const { reviewId, userId } = req.body;
-    if (
-        isNaN(reviewId) ||
-        isNaN(userId) 
-      ) {
-        res.status(400).json({ error: 'Datos incompletos o incorrectos' });
-        return;
-      }else{
-        next();
-      }
-      
+export async function validateLikeReview(req: Request, res: Response, next: NextFunction) {
+  const { reviewId, userId } = req.body;
+  if (!esNumeroValido(reviewId) || !esNumeroValido(userId)) {
+    res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+  } else {
+    next();
+  }
 }
+
 /**
  * Validates the review data received in the request body. 
  * Checks if the userId,  rating, and reviewContent are valid.
@@ -40,29 +36,38 @@ export async function validateLikeReview (req: Request, res: Response, next: Nex
 export async function validateAddReview  (req: Request, res: Response, next: NextFunction){
 
     const { templateId, userId, rating, reviewContent } = req.body;
-    if (
-        isNaN(templateId) ||
-        isNaN(userId) ||
-        isNaN(rating) ||
-        rating < 0 ||
-        rating > 5 ||
-        !reviewContent
-      ) {
-        res.status(400).json({ error: 'Datos incompletos o incorrectos' });
+    if (!esNumeroValido(templateId) ){
+        res.status(400).json({ error: 'templateId no valido' });
         return;
-      }else{
+    }
+    if (!esNumeroValido(userId) ){
+        res.status(400).json({ error: 'userId no valido' });
+        return;
+    }
+    if (
+        !esNumeroValido(rating) ||
+        rating < 0 ||
+        rating > 5   
+      ) {
+        res.status(400).json({ error: 'Review incorrecta' });
+        return;
+      }
+      if (!reviewContent){
+        res.status(400).json({ error: 'reviewContent no valido' });
+        return;
+      }
 
    
-        const plantilla = await plantillaService.getPlantillaById(templateId);
-       
+      const plantilla = await plantillaService.getPlantillaById(templateId);
+      
 
-        if ( !plantilla) {
-          res.status(400).json({ error: 'plantilla no encontrado con userId' });
-          return;
-        }
-        
-        next();
+      if ( !plantilla) {
+        res.status(400).json({ error: 'plantilla no encontrado con userId' });
+        return;
       }
+      
+      next();
+      
       
 }
 
@@ -78,8 +83,8 @@ export async function validateAnswerReview(req: Request, res: Response, next: Ne
 
   const { userId, reviewId,  answer } = req.body;
     if (
-        isNaN(reviewId) ||
-        isNaN(userId) ||
+      !esNumeroValido(reviewId) ||
+      !esNumeroValido(userId) ||
         !answer
       ) {
         res.status(400).json({ error: 'Datos incompletos o incorrectos' });
@@ -108,9 +113,9 @@ export async function validateAnswerComment( req: Request, res: Response, next: 
 
     const {reviewId, commentId, userId, answer } = req.body;
     if (
-        isNaN(reviewId) ||
-        isNaN(commentId) ||
-        isNaN(userId) ||
+      !esNumeroValido(reviewId) ||
+      !esNumeroValido(commentId) ||
+      !esNumeroValido(userId) ||
         !answer
       ) {
         res.status(400).json({ error: 'Datos incompletos o incorrectos' });
@@ -138,7 +143,7 @@ export async function validateAnswerComment( req: Request, res: Response, next: 
 export async function validateDeleteReview(req: Request, res: Response, next: NextFunction){
   const  reviewId  = parseInt(req.params.id);
   if (
-    isNaN(reviewId)
+    !esNumeroValido(reviewId)
   ){
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
     return;
@@ -163,7 +168,7 @@ export async function validateDeleteReview(req: Request, res: Response, next: Ne
 export async function validateDeleteComment(req: Request, res: Response, next: NextFunction){
   const commentId = parseInt(req.params.id);
   if (
-    isNaN(commentId)
+    !esNumeroValido(commentId)
   ){
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
     return;

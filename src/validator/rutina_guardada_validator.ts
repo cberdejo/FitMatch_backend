@@ -40,3 +40,30 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
 
     next();
 }
+
+export async function validateGetRutinasGuardadas(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        const userId = parseInt(req.query.user_id as string) || 0;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+
+        if (!esNumeroValido(userId) ){
+            res.status(400).json({ error: 'El usuario proporcionado no es válido.' });
+            return;
+        }
+        if (!esNumeroValido(page)){
+            res.status(400).json({ error: 'El número de página proporcionado no es válido.' });
+            return;
+        }
+        if (!esNumeroValido(pageSize)){
+            res.status(400).json({ error: 'El tamaño de página proporcionado no es válido.' });
+            return;
+        }
+
+        next();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrió un error al validar la solicitud.' });
+    }
+   
+}

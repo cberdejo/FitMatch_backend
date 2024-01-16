@@ -93,43 +93,43 @@ export const plantillaService = {
     * @param {number} pageSize - The number of items per page.
     * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
     */
-    async  getPlantillaPosts(userId: number | null, page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
-        try {
-            const offset = (page - 1) * pageSize;
-            const whereClause = userId ? { user_id: userId } : {};
-    
-            return await db.plantillas_de_entrenamiento.findMany({
-                where: whereClause,
-                skip: offset,
-                take: pageSize,
-                include: {
-                    reviews: {
-                        include: {
-                            usuario: {
-                                select: {
-                                    username: true
-                                }
-                            },
-                            me_gusta: true,
-                            comentario_review: {
-                                include: {
-                                    usuario: {
-                                        select: {
-                                            username: true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    etiquetas: true
-                }
-            });
-        } catch (error) {
-            console.error(error);
-            throw error;
-        }
-    },
+    async  getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<plantillas_de_entrenamiento[]> {
+      try {
+          const offset = (page - 1) * pageSize;
+          const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
+  
+          return await db.plantillas_de_entrenamiento.findMany({
+              where: whereClause ,
+              skip: offset,
+              take: pageSize,
+              include: {
+                  reviews: {
+                      include: {
+                          usuario: {
+                              select: {
+                                  username: true
+                              }
+                          },
+                          me_gusta: true,
+                          comentario_review: {
+                              include: {
+                                  usuario: {
+                                      select: {
+                                          username: true
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  etiquetas: true
+              }
+          });
+      } catch (error) {
+          console.error(error);
+          throw error;
+      }
+  },
 
 /**
  * Retrieves reviews by plantilla id from the database.

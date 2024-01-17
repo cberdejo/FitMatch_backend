@@ -43,7 +43,7 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
 
 export async function validateGetRutinasGuardadas(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const userId = parseInt(req.query.user_id as string) || 0;
+        const userId = parseInt( req.params.userId) 
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 

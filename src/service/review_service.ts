@@ -1,5 +1,6 @@
 import { reviews } from "@prisma/client";
 import db  from "../config/database";
+import { filtroReview } from "../interfaces/filtros";
 
 
 export const reviewService = {
@@ -12,21 +13,25 @@ export const reviewService = {
      * @param {string} reviewContent - The content of the review.
      * @return {Promise<reviews>} - A promise that resolves to the created review, or null if there was an error.
      */
-    async  create(templateId: number, userId: number, rating: number, reviewContent: string): Promise<reviews> {
+    async create(templateId: number, userId: number, rating: number, reviewContent: string): Promise<reviews> {
         try {
-            return await db.reviews.create({
+            const newReview = await db.reviews.create({
                 data: {
                     user_id: userId,
                     template_id: templateId,
                     rating: rating,
                     review_content: reviewContent
                 }
-            }); 
+            });
+              
+    
+            return newReview;
         } catch (error) {
             console.error('Error al crear review:', error);
             throw error;
         }
     },
+    
     async  delete(review_id: number) {
         try {
             return await db.reviews.delete({
@@ -50,13 +55,95 @@ export const reviewService = {
             return await db.reviews.findUnique({
                 where: {
                     review_id: review_id
-                }
+                },
+                
             }); 
         } catch (error) {
             console.error('Error al obtener la review:', error);
-            return null;
+            throw error;
         }
-    }
+    },
+
+    async  getReviewsByTemplateId(template_id: number | null,  reviewOrder: filtroReview | null, page: number | null, pageSize: number | null) {
+        try {
+            const whereClause = template_id ? { template_id: template_id } : {};
+            let orderReviewByClause = {};
+
+            switch (reviewOrder) {
+              case 'like':
+                orderReviewByClause = { 'me_gusta_reviews': { '_count': 'desc' } };
+                break;
+              case 'reciente':
+                orderReviewByClause = { timestamp: 'desc' };
+                  break;
+              case 'calificacion_alta':
+                orderReviewByClause = { rating: 'desc' };
+                  break;
+              case 'calificacion_baja':
+                orderReviewByClause = { rating: 'asc' };
+                  break;
+              default:
+                  orderReviewByClause = { timestamp: 'desc' };
+                  break;
+            }
+
+            let offset: number | undefined = undefined;
+            let limit: number | undefined = undefined;
+            if (page && pageSize) {
+                 offset = (page - 1) * pageSize;
+                 limit = pageSize;
+            }
+            
+            const reviews =  await db.reviews.findMany({
+                where: whereClause,
+                skip: offset,
+                take: limit,  
+                orderBy: orderReviewByClause,
+                include: {
+                    usuario: {
+                        select: {
+                            username: true
+                        }
+                    },
+                    me_gusta_reviews: true,
+                    comentario_review: {
+                        include: {
+                            usuario: {
+                                select: {
+                                    username: true
+                                }
+                            },
+                            me_gusta_comentarios: true
+                        }
+                    }
+                }
+            });
+
+            const flattenedReviews = reviews.map((review) => {
+                const {usuario, ... reviewWithoutUser} = review;
+                const flattenedComments = review.comentario_review.map((comment) => {
+                    const {usuario, ... commentWithoutUser} = comment;
+                    return {
+                        ...commentWithoutUser,
+                        username: comment.usuario.username,
+                        meGustaCount: comment.me_gusta_comentarios.length
+                    };
+                }).sort((a, b) => b.meGustaCount - a.meGustaCount); // Ordenar comentarios por meGustaCount en orden descendente
+                
+                return {
+                    ...reviewWithoutUser,
+                    username: review.usuario.username,
+                    comentario_review: flattenedComments
+                };
+            });
+            return flattenedReviews;
+                
+            
+        } catch (error) {
+            console.error('Error al obtener la review:', error);
+            throw error;
+        } 
+    } 
         
 }
 
@@ -182,7 +269,7 @@ export const likeCommentService = {
             return await db.me_gusta_comentarios.delete({
             where : {
                 liked_comment_id: liked_comment_id,
-                }
+            }
             }); 
         } catch (error) {
             console.error('Error al quitar el me gusta:', error);

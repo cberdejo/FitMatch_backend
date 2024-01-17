@@ -204,6 +204,7 @@ model etiquetas {
   interests                   String?                     @db.VarChar(50)
   objectives                  String?                     @db.VarChar(50)
   equipment                   String?                     @db.VarChar(50)
+  duration                    String?                     @db.VarChar(50)
   plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "FK_emparejamiento_plantillas_de_entrenamiento")
 
   @@index([template_id], map: "FK_emparejamiento_plantillas_de_entrenamiento")
@@ -229,8 +230,8 @@ model me_gusta_comentarios {
   comentario_review comentario_review @relation(fields: [comment_id], references: [comment_id], onDelete: Cascade, map: "FK_me_gusta_comentarios_comentario_review")
   usuario           usuario           @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "me_gusta_comentarios_ibfk_2")
 
-  @@unique([comment_id, user_id], map: "review_id_user_id")
-  @@index([user_id], map: "user_id")
+  @@index([user_id], map: "FK_me_gusta_comentarios_usuario")
+  @@index([comment_id], map: "FK_me_gusta_comentarios_comentario_review")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments

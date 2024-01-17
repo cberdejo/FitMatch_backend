@@ -7,7 +7,7 @@ const router: Router = express.Router();
 
 router.post('/rutinasGuardadas/', validateCreateRutinaGuardada, createRutinaGuardada);
 router.delete('/rutinasGuardadas/:saved_id', deleteRutinaGuardada);
-router.get('/rutinasGuardadas/', validateGetRutinasGuardadas, getRutinasGuardadas);
+router.get('/rutinasGuardadas/:userId', validateGetRutinasGuardadas, getRutinasGuardadas);
 
 
 export default router

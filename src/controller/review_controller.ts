@@ -1,8 +1,28 @@
 import { Request, Response } from 'express';
 import { commentService, likeCommentService, likeReviewService, reviewService, } from '../service/review_service'; 
 import {  getUsuarioByIdService } from '../service/usuario_service';
-import { reviews, usuario } from '@prisma/client';
+import { me_gusta_comentarios, reviews, usuario } from '@prisma/client';
+import { filtroReview } from '../interfaces/filtros';
 
+
+
+async function getReviewsByTemplateId(req: Request, res: Response) {
+    
+    try {
+        const templateId: number | null = req.query.templateId? parseInt(req.query.templateId as string) : null;
+        const reviewOrder: filtroReview | null  = req.query.reviewOrder? req.query.reviewOrder as filtroReview : null;
+        const page = req.query.page? (parseInt(req.query.page as string) || 1): null;
+        const pageSize = req.query.pageSize? (parseInt(req.query.pageSize as string) || 10): null;
+
+        const reviews = await reviewService.getReviewsByTemplateId(templateId, reviewOrder, page, pageSize);
+        res.status(200).json(reviews);
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+
+    }
+}
 
 /**
  * Like a review.
@@ -34,12 +54,16 @@ async function likeComment(req: Request, res: Response) {
     try {
         const { commentId, userId } = req.body;
 
-        const likeExistente = await likeCommentService.getLikeByUserId(commentId, userId);
+        const likeExistente: me_gusta_comentarios | null = await likeCommentService.getLikeByUserId(commentId, userId);
         let like;
         if (likeExistente) {
           like = await likeCommentService.dislike(likeExistente.liked_comment_id);
         }else{
           like = await likeCommentService.like(commentId, userId);
+          
+        }
+        if (!like) {
+            res.status(400).json({ error: 'like no creado' });
         }
         res.status(200).json(like);
     } catch (error) {
@@ -153,4 +177,4 @@ async function deleteComment(req: Request, res: Response) {
     }
 }
 
-export { likeReview, addReview, answerReview, deleteReview, deleteComment, likeComment };
+export {getReviewsByTemplateId, likeReview, addReview, answerReview, deleteReview, deleteComment, likeComment };

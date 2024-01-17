@@ -15,11 +15,19 @@ import { commentService, reviewService } from '../service/review_service';
  */
 export async function validateLikeReview(req: Request, res: Response, next: NextFunction) {
   const { reviewId, userId } = req.body;
+  
   if (!esNumeroValido(reviewId) || !esNumeroValido(userId)) {
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
-  } else {
-    next();
+    return;
+  } 
+  const review = await reviewService.getById(reviewId);
+  if (!review) {
+    res.status(400).json({ error: 'review no encontrado con reviewId' });
+    return;
   }
+
+  return next();
+  
 }
 
 /**
@@ -34,9 +42,19 @@ export async function validateLikeComment(req: Request, res: Response, next: Nex
   const { commentId, userId } = req.body;
   if (!esNumeroValido(commentId) || !esNumeroValido(userId)) {
     res.status(400).json({ error: 'Datos incompletos o incorrectos' });
-  } else {
-    next();
+    return;
+  } 
+
+  const comment = await commentService.getById(commentId);
+
+  if (!comment) {
+    res.status(400).json({ error: 'comment no encontrado con commentId' });
+    return;
   }
+  
+
+  return next();
+  
 }
 
 

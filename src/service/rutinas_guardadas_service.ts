@@ -1,5 +1,5 @@
 import db  from "../config/database";
-import { aplanarRespuesta } from "../utils/funciones_auxiliares_services";
+
 
 
 export const rutinaGuardadaService = {
@@ -48,31 +48,12 @@ export const rutinaGuardadaService = {
             const plantillas =  await db.plantillas_de_entrenamiento.findMany({
                 where: { template_id: { in: plantillasIds } },
                 include: {
-                    reviews: {
-                        include: {
-                            usuario: {
-                                select: {
-                                    username: true
-                                }
-                            },
-                            me_gusta_reviews: true,
-                            comentario_review: {
-                                include: {
-                                    usuario: {
-                                        select: {
-                                            username: true
-                                        }
-                                    },
-                                    me_gusta_comentarios: true
-                                }
-                            }
-                        }
-                    },
+                    
                     etiquetas: true
                 }
             });
 
-            return plantillas.map(aplanarRespuesta);
+            return plantillas;
 
         } catch (error) {
             console.error(error);

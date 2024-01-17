@@ -1,13 +1,7 @@
 import { Request, Response } from 'express';
-
 import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { plantillaService } from '../service/plantilla_posts_service';
 import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
-import { plantillas_de_entrenamiento } from '@prisma/client';
-
-
-
-
 
 
 
@@ -20,14 +14,15 @@ import { plantillas_de_entrenamiento } from '@prisma/client';
  */
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
-        const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-        const isPublic = req.query.isPublic !== 'false';
-        const isHidden = req.query.isHidden === 'true';
-        
+        const userId: number | null = req.query.userId ? parseInt(req.query.userId as string) : null;
+        const isPublic: boolean = req.query.isPublic !== 'false';
+        const isHidden: boolean = req.query.isHidden === 'true';
+       
+
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts:plantillas_de_entrenamiento[] = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
+        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).send();

@@ -1,88 +1,7 @@
 import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 import { Etiqueta_In } from "../interfaces/etiquetas_input";
-import { aplanarRespuesta } from "../utils/funciones_auxiliares_services";
 
-/*
-[
-  {
-   
-    template_id: number,
-    user_id: number,
-    template_name: string,
-    description: string | null,
-    picture: string | null,
-
-
-    // Relación con reviews
-    reviews: [
-      {
-        // Campos de reviews
-        review_id: number,
-        user_id: number,
-        template_id: number,
-        rating: number,
-        review_content: string,
-        timestamp: Date,
-        // ... otros campos de reviews
-
-        // Usuario que escribió la reseña
-        usuario: {
-          username: string
-        },
-
-        // Relación con me_gusta
-        me_gusta: [
-          {
-            // Campos de me_gusta
-            liked_id: number,
-            review_id: number,
-            user_id: number
-            // ... otros campos de me_gusta
-          },
-          
-        ],
-
-        // Relación con comentario_review
-        comentario_review: [
-          {
-            // Campos de comentario_review
-            comment_id: number,
-            review_id: number,
-            user_id: number,
-            content: string,
-            timestamp: Date,
-            comment_responded: number | null,
-            // ... otros campos de comentario_review
-
-            // Usuario que escribió el comentario
-            usuario: {
-              username: string
-            }
-          },
-          // ... más objetos comentario_review
-        ]
-      },
-      // ... más objetos reviews
-    ],
-
-    // Relación con etiquetas
-    etiquetas: [
-      {
-        // Campos de etiquetas
-        tag_id: number,
-        template_id: number,
-        objetivos: string | null,
-        experiencia: string | null,
-        intereses: string | null
-        // ... otros campos de etiquetas
-      },
-     
-    ]
-  },
-  
-]
-*/
 
 export const plantillaService = {
     /**
@@ -98,65 +17,17 @@ export const plantillaService = {
       try {
           const offset = (page - 1) * pageSize;
           const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
-  
+        
           const plantillaPosts = await db.plantillas_de_entrenamiento.findMany({
               where: whereClause,
               skip: offset,
               take: pageSize,
               include: {
-                  reviews: {
-                      include: {
-                          usuario: {
-                              select: {
-                                  username: true
-                              }
-                          },
-                          me_gusta_reviews: true,
-                          comentario_review: {
-                              include: {
-                                  usuario: {
-                                      select: {
-                                          username: true
-                                      }
-                                  },
-                                  me_gusta_comentarios: true
-                              }
-                          }
-                      }
-                  },
-                  etiquetas: true
+                etiquetas: true
               }
           });
   
-          // Aplanar la estructura de los datos y agregar el atributo "username"
-          const flattenedPosts = plantillaPosts.map(aplanarRespuesta);
-          
-          /*plantillaPosts.map(post => {
-            const reviews = post.reviews.map(review => {
-                const { usuario, ...restReview } = review; // Separar el objeto "usuario"
-                const comentario_review = review.comentario_review.map(comment => {
-                    const { usuario: usuarioComment, ...restComment } = comment; // Separar el objeto "usuario" de cada comentario
-                    return {
-                        ...restComment,
-                        username: usuarioComment.username // Agregar el username directamente al comentario
-                    };
-                });
-    
-                return {
-                    ...restReview,
-                    username: usuario.username, // Agregar el username directamente a la review
-                    comentario_review
-                };
-            });
-    
-            return {
-                ...post,
-                reviews
-            };
-        });
-        */
-  
-          return flattenedPosts;
+          return plantillaPosts;
       } catch (error) {
           console.error(error);
           throw error;
@@ -164,28 +35,7 @@ export const plantillaService = {
   },
   
 
-/**
- * Retrieves reviews by plantilla id from the database.
- *
- * @param {number} template_id - The id of the plantilla.
- * @return {Promise} A promise that resolves to an array of reviews.
- */
-async  getReviewsByPlantillaId(template_id:number) {
-    try{
-        return db.reviews.findMany({
-            where: {
-                template_id:template_id,
-            },
-            include: {
-                me_gusta_reviews: true, 
-                comentario_review: true, 
-                }, 
-        })
-    }catch(error){
-        console.error(error);
-        throw error;
-    }
-},
+
 /**
  * Retrieves a plantilla (template) from the database based on the provided template ID.
  *

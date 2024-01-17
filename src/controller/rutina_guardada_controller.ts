@@ -28,7 +28,7 @@ export async function createRutinaGuardada(req: Request, res: Response): Promise
  */
 export async function getRutinasGuardadas(req: Request, res: Response) {
     try {
-        const userId = parseInt(req.query.user_id as string) || 0;
+        const userId = parseInt(req.params.userId );
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 

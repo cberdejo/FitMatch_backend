@@ -102,20 +102,58 @@ async  postPlantilla(plantilla: {
     }
   },
   
-  
-     /**
-     * Actualiza una plantilla de entrenamiento basándose en el ID proporcionado y los datos para actualizar.
-     *
-     * @param {number} template_id - El ID de la plantilla de entrenamiento a actualizar.
-     * @param {Partial<plantillas_de_entrenamiento>} updateData - Un objeto que contiene los campos a actualizar.
-     * @return {Promise<plantillas_de_entrenamiento>} - Una promesa que se resuelve con la plantilla de entrenamiento actualizada.
-     */
-     async update(template_id: number, updateData: Partial<plantillas_de_entrenamiento>): Promise<plantillas_de_entrenamiento> {
-        return db.plantillas_de_entrenamiento.update({
-            where: { template_id },
-            data: updateData,
+  async update(template_id: number, plantilla: {
+    template_name: string; 
+    user_id: number;
+    description: string; 
+    picture: string | null; 
+    etiquetas: Etiqueta_In[];
+  }) {
+    try {
+      // Iniciar una transacción
+      const result = await db.$transaction(async (prisma) => {
+        // Actualizar los datos de la plantilla
+        const plantillaData: any = {
+          template_name: plantilla.template_name,
+          description: plantilla.description,
+          user_id: plantilla.user_id,
+          
+        };
+
+        if (plantilla.picture !== null) {
+          plantillaData.picture = plantilla.picture;
+        }
+
+        const updatedPlantilla = await prisma.plantillas_de_entrenamiento.update({
+          where: { template_id: template_id },
+          data: plantillaData,
         });
-    },
+
+        //ACTUALIZAR LAS ETIQUETAS
+        await prisma.etiquetas.deleteMany({
+          where: { template_id: template_id }
+       });
+
+      // Crear nuevas etiquetas
+      const etiquetasToInsert = plantilla.etiquetas.map(etiqueta => ({
+        ...etiqueta,
+        template_id: updatedPlantilla.template_id,
+      }));
+
+      await prisma.etiquetas.createMany({
+        data: etiquetasToInsert,
+      });
+
+        return updatedPlantilla;
+      });
+
+      return result;
+
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
 
 
     /**

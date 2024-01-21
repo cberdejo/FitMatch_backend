@@ -137,36 +137,23 @@ model sets_ejercicios_entrada {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model usuario {
-  user_id                                                          Int                               @id @default(autoincrement())
-  username                                                         String                            @db.VarChar(255)
-  email                                                            String                            @unique(map: "email") @db.VarChar(255)
-  password                                                         String                            @db.VarChar(255)
-  profile_picture                                                  String?                           @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
-  profile_id                                                       Int                               @default(2)
-  birth                                                            DateTime?                         @default(dbgenerated("(now())")) @db.Date
-  public                                                           Boolean                           @default(true) @db.Bit(1)
-  comentario_review                                                comentario_review[]
-  me_gusta_comentarios                                             me_gusta_comentarios[]
-  me_gusta_reviews                                                 me_gusta_reviews[]
-  reviews                                                          reviews[]
-  rutinas_guardadas                                                rutinas_guardadas[]
-  sesion_de_entrenamiento_entrada                                  sesion_de_entrenamiento_entrada[]
-  perfil                                                           perfil                            @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade, map: "FK_usuario_perfil")
-  usuarios_bloqueados_usuarios_bloqueados_user_idTousuario         usuarios_bloqueados[]             @relation("usuarios_bloqueados_user_idTousuario")
-  usuarios_bloqueados_usuarios_bloqueados_blocked_user_idTousuario usuarios_bloqueados[]             @relation("usuarios_bloqueados_blocked_user_idTousuario")
+  user_id                         Int                               @id @default(autoincrement())
+  username                        String                            @db.VarChar(255)
+  email                           String                            @unique(map: "email") @db.VarChar(255)
+  password                        String                            @db.VarChar(255)
+  profile_picture                 String?                           @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
+  profile_id                      Int                               @default(2)
+  birth                           DateTime?                         @default(dbgenerated("(now())")) @db.Date
+  public                          Boolean                           @default(true) @db.Bit(1)
+  comentario_review               comentario_review[]
+  me_gusta_comentarios            me_gusta_comentarios[]
+  me_gusta_reviews                me_gusta_reviews[]
+  reviews                         reviews[]
+  rutinas_guardadas               rutinas_guardadas[]
+  sesion_de_entrenamiento_entrada sesion_de_entrenamiento_entrada[]
+  perfil                          perfil                            @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade, map: "FK_usuario_perfil")
 
   @@index([profile_id], map: "FK_usuario_perfil")
-}
-
-model usuarios_bloqueados {
-  block_id                                             Int      @id @default(autoincrement())
-  user_id                                              Int?
-  blocked_user_id                                      Int?
-  usuario_usuarios_bloqueados_user_idTousuario         usuario? @relation("usuarios_bloqueados_user_idTousuario", fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "usuarios_bloqueados_ibfk_1")
-  usuario_usuarios_bloqueados_blocked_user_idTousuario usuario? @relation("usuarios_bloqueados_blocked_user_idTousuario", fields: [blocked_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "usuarios_bloqueados_ibfk_2")
-
-  @@index([blocked_user_id], map: "blocked_user_id")
-  @@index([user_id], map: "user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -245,4 +232,10 @@ model me_gusta_reviews {
   @@unique([review_id, user_id], map: "review_id_user_id")
   @@index([review_id], map: "review_id")
   @@index([user_id], map: "user_id")
+}
+
+model rutinas_archivadas {
+  archived_id Int @id @default(autoincrement())
+  template_id Int @default(0)
+  user_id     Int @default(0)
 }

@@ -46,7 +46,9 @@ export const rutinaGuardadaService = {
     
             // Luego, obtenemos las plantillas de entrenamiento correspondientes a esos IDs
             const plantillas =  await db.plantillas_de_entrenamiento.findMany({
-                where: { template_id: { in: plantillasIds } },
+                where: { 
+                    template_id: { in: plantillasIds } ,
+                },
                 include: {
                     
                     etiquetas: true
@@ -58,8 +60,67 @@ export const rutinaGuardadaService = {
         } catch (error) {
             console.error(error);
             throw error;
+        } finally {
+            await db.$disconnect();
         }
     }
     
    
 };
+
+export const rutinaArchivadaService = {
+   
+    async create(data: { user_id: number; template_id: number; }) {
+        return db.rutinas_archivadas.create({
+            data,
+        });
+    },
+
+  
+    async delete(archived_id: number) {
+        return db.rutinas_archivadas.delete({
+            where: { archived_id:archived_id },
+        });
+    },
+
+
+   
+    async getArchivadasPlantillaPosts(userId: number, page: number, pageSize: number) {
+        try {
+            const offset = (page - 1) * pageSize;
+    
+            // Primero, obtenemos los IDs de las plantillas guardadas por el usuario
+            const plantillasGuardadas = await db.rutinas_archivadas.findMany({
+                where: { user_id: userId },
+                select: { template_id: true }, // Solo necesitamos los IDs de las plantillas
+                skip: offset,
+                take: pageSize
+            });
+    
+            // Extraemos los IDs de las plantillas
+            const plantillasIds = plantillasGuardadas.map(pg => pg.template_id);
+    
+            // Luego, obtenemos las plantillas de entrenamiento correspondientes a esos IDs
+            const plantillas =  await db.plantillas_de_entrenamiento.findMany({
+                where: { 
+                    template_id: { in: plantillasIds } ,
+                },
+                include: {
+                    
+                    etiquetas: true
+                }
+            });
+
+            return plantillas;
+
+        } catch (error) {
+            console.error(error);
+            throw error;
+        } finally {
+            await db.$disconnect();
+        }
+    }
+    
+   
+};
+

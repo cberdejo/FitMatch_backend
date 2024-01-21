@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { plantillaService } from '../service/plantilla_posts_service';
 import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
+import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
 
 
 
@@ -84,15 +85,53 @@ export async function createPlantillaPost(req: Request, res: Response): Promise<
 export async function editPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
         const template_id = parseInt(req.params.template_id);
-        const templateData = req.body; 
+        const { template_name, description, etiquetas, user_id} = req.body;
+        const picture = req.file;
 
-        const updatedSession = await plantillaService.update(template_id, templateData);
-        res.json(updatedSession);
+        // Obtener la plantilla existente para acceder a la imagen actual
+        const existingPlantilla = await plantillaService.getPlantillaById(template_id);
+        if (!existingPlantilla) {
+            res.status(404).json({ error: 'Plantilla no encontrada.' });
+            return;
+        }
+
+        let cloudinary_picture;
+        if (existingPlantilla.picture && picture) {
+            // Obtener el ID público de la imagen existente
+            const publicImageId = getPublicIdFromUrl(existingPlantilla.picture);
+
+            // Eliminar la imagen existente
+           console.log(publicImageId);
+            await deleteImageFromCloudinary(publicImageId);
+
+            // Subir la nueva imagen
+            cloudinary_picture = await postImage(picture);
+        } else if (picture) {
+            // No hay imagen existente, pero hay una nueva imagen para subir
+            cloudinary_picture = await postImage(picture);
+        } else {
+            // Mantener la imagen actual si no hay una nueva imagen
+            cloudinary_picture = existingPlantilla.picture;
+        }
+
+        const data = {
+            template_name: template_name,
+            description: description,
+            picture: cloudinary_picture,
+            etiquetas: etiquetas,
+            user_id: parseInt(user_id)
+        };
+
+        // Actualizar la plantilla
+        const response = await plantillaService.update(template_id, data);
+        res.status(200).json(response);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al editar la sesión de entrenamiento.' });
+        res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
     }
 }
+
+
 
 /**
  * Deletes a plantilla post.

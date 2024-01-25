@@ -98,6 +98,7 @@ async function addReview(req: Request, res: Response) {
         
         const reviewExtended  = {
             username: user.username,
+            profile_picture: user.profile_picture,
             ...review
 
         }

@@ -59,3 +59,14 @@ export async function editSesionEntrenamiento(req: Request, res: Response): Prom
         res.status(500).json({ error: 'Error al editar la sesión de entrenamiento.' });
     }
 }
+
+export async function getSesionsEntrenamientoByTemplateId(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+        const session = await sesionEntrenamientoService.getByTemplateId(template_id);
+        res.status(200).json(session);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener la sesión de entrenamiento.' });
+    }
+}

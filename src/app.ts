@@ -6,10 +6,8 @@ import cors from 'cors';
 import usuarioRouter from './routes/usuario_routes';
 import trainer_postsRouter from './routes/plantilla_posts_routes';
 import reviewRouter from './routes/review_routes';
-import ejercicioRouter from './routes/ejercicio_routes';
 import rutinaGuardadaRouter from './routes/rutinas_guardadas_routes';
 import sesionEntrenamientoRouter from './routes/sesion_entrenamiento_routes';
-import sesionEntrenamientoEntradaRouter from './routes/sesion_entrenamiento_entrada_routes';
 
 
 const app = express();
@@ -55,10 +53,8 @@ app.use(express.json());
 app.use('/', usuarioRouter);
 app.use('/', trainer_postsRouter);
 app.use('/', reviewRouter);
-app.use('/', ejercicioRouter);
 app.use('/', rutinaGuardadaRouter);
 app.use('/', sesionEntrenamientoRouter);
-app.use('/', sesionEntrenamientoEntradaRouter);
 
 
 /*

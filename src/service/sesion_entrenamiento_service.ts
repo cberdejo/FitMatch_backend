@@ -21,7 +21,7 @@ export const sesionEntrenamientoService = {
             });
     
             for (const ejercicio of ejercicios) {
-                await prisma.ejercicios_con_detalles.create({
+                await prisma.ejercicios_detallados.create({
                     data: {
                         ...ejercicio,
                         session_id: sesion.session_id,
@@ -70,5 +70,12 @@ export const sesionEntrenamientoService = {
     return db.sesion_de_entrenamiento.findUnique({
         where: { session_id },
     });
+   },
+
+   async getByTemplateId (template_id: number) {
+       return db.sesion_de_entrenamiento.findMany({
+           where: { template_id:template_id },
+           orderBy: { order: 'asc' },
+       })
    }
 };

@@ -102,7 +102,8 @@ export const reviewService = {
                 include: {
                     usuario: {
                         select: {
-                            username: true
+                            username: true,
+                            profile_picture: true
                         }
                     },
                     me_gusta_reviews: true,
@@ -110,7 +111,8 @@ export const reviewService = {
                         include: {
                             usuario: {
                                 select: {
-                                    username: true
+                                    username: true,
+                                    profile_picture: true
                                 }
                             },
                             me_gusta_comentarios: true
@@ -126,6 +128,7 @@ export const reviewService = {
                     return {
                         ...commentWithoutUser,
                         username: comment.usuario.username,
+                        profile_picture: comment.usuario.profile_picture,
                         meGustaCount: comment.me_gusta_comentarios.length
                     };
                 }).sort((a, b) => b.meGustaCount - a.meGustaCount); // Ordenar comentarios por meGustaCount en orden descendente
@@ -133,6 +136,7 @@ export const reviewService = {
                 return {
                     ...reviewWithoutUser,
                     username: review.usuario.username,
+                    profile_picture: review.usuario.profile_picture,
                     comentario_review: flattenedComments
                 };
             });

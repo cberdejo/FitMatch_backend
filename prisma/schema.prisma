@@ -25,23 +25,26 @@ model comentario_review {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model ejercicios {
   exercise_id           Int                     @id @default(autoincrement())
+  muscle_group_id       Int
+  material_id           Int
+  user_id               Int?
   name                  String?                 @db.VarChar(255)
   description           String?                 @db.Text
-  muscular_group_id     Int
-  material_id           Int?
-  grupo_muscular        grupo_muscular          @relation(fields: [muscular_group_id], references: [muscular_group_id], onDelete: Cascade, map: "FK_ejercicios_grupo_muscular")
-  material              material?               @relation(fields: [material_id], references: [material_id], onDelete: Cascade, map: "FK_ejercicios_material")
+  grupo_muscular        grupo_muscular          @relation(fields: [muscle_group_id], references: [muscle_group_id], onDelete: Cascade, map: "FK_ejercicios_grupo_muscular")
+  material              material                @relation(fields: [material_id], references: [material_id], onDelete: Cascade, map: "FK_ejercicios_material")
+  usuario               usuario?                @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_ejercicios_usuario")
   ejercicios_detallados ejercicios_detallados[]
 
-  @@index([muscular_group_id], map: "FK_ejercicios_grupo_muscular")
+  @@index([muscle_group_id], map: "FK_ejercicios_grupo_muscular")
   @@index([material_id], map: "FK_ejercicios_material")
+  @@index([user_id], map: "FK_ejercicios_usuario")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model grupo_muscular {
-  muscular_group_id Int          @id @default(autoincrement())
-  name              String?      @unique(map: "name") @db.VarChar(50)
-  ejercicios        ejercicios[]
+  muscle_group_id Int          @id @default(autoincrement())
+  name            String?      @unique(map: "name") @db.VarChar(50)
+  ejercicios      ejercicios[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -73,7 +76,7 @@ model reviews {
   user_id                     Int
   template_id                 Int
   rating                      Float
-  review_content              String                      @db.Text
+  review_content              String?                     @db.Text
   timestamp                   DateTime                    @default(dbgenerated("(now())")) @db.Timestamp(0)
   comentario_review           comentario_review[]
   me_gusta_reviews            me_gusta_reviews[]
@@ -110,6 +113,7 @@ model usuario {
   birth                DateTime?              @default(dbgenerated("(now())")) @db.Date
   public               Boolean                @default(true) @db.Bit(1)
   comentario_review    comentario_review[]
+  ejercicios           ejercicios[]
   me_gusta_comentarios me_gusta_comentarios[]
   me_gusta_reviews     me_gusta_reviews[]
   registro_set         registro_set[]

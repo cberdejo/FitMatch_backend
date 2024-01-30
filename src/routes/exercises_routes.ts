@@ -8,16 +8,16 @@ const router: Router = express.Router();
 router.get('/ejercicios/', getAllExercises);
 
 
-router.get('/grupo_muscular', getAllMuscleGroups);
-router.get('/grupo_muscular/:id',paramIdValidation,  getMuscleGroupsById);
+router.get('/grupoMuscular', getAllMuscleGroups);
+router.get('/grupoMuscular/:id',paramIdValidation,  getMuscleGroupsById);
 
 router.get ('/material', getAllMaterials);
 router.get('/material/:id', paramIdValidation, getMaterialsById);
 
-router.get('/tipo_registro', getAllTypesRegisters);
+router.get('/tipoRegistro', getAllTypesRegisters);
 
-router.get ('/ejercicios/:muscle_group',  getExercisesByMuscleGroup);
-router.get('/ejercicios/:material', getExercisesByMaterial);
+router.get ('/ejercicios/grupoMuscular/:muscle_group',  getExercisesByMuscleGroup);
+router.get('/ejercicios/material/:material', getExercisesByMaterial);
 
 
 

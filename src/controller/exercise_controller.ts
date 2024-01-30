@@ -5,8 +5,11 @@ import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 export async function getAllExercises(req: Request, res: Response): Promise<void> {
     try {
         const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-        if (userId && esNumeroValido(userId)) {
-            const exercises = await exerciseService.getAllByUserId(userId);
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 20;
+
+        if (userId && esNumeroValido(userId) && esNumeroValido(page) && esNumeroValido(pageSize)) {
+            const exercises = await exerciseService.getAllByUserId(userId, page, pageSize);
             res.status(200).json(exercises);
         }else{
             const exercises = await exerciseService.getAll();
@@ -76,11 +79,15 @@ export async function getAllTypesRegisters(_req: Request, res: Response): Promis
 export async function getExercisesByMuscleGroup(req: Request, res: Response): Promise<void> {
     try {
         const id = parseInt(req.params.muscle_group);
-        if (!esNumeroValido(id)) {
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 20;
+
+
+        if (!esNumeroValido(id) && esNumeroValido(page) && esNumeroValido(pageSize)) {
             res.status(400).json({ error: 'El ID debe ser un número' });
         }
 
-        const exercises = await exerciseService.getByMuscleGroup(id);
+        const exercises = await exerciseService.getByMuscleGroup(id,page, pageSize);
         res.status(200).json(exercises);
 
     } catch (error) {
@@ -93,10 +100,13 @@ export async function getExercisesByMuscleGroup(req: Request, res: Response): Pr
 export async function getExercisesByMaterial(req: Request, res: Response): Promise<void> {
     try{ 
         const id = parseInt(req.params.material);
-        if (!esNumeroValido(id)) {
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 20;
+
+        if (!esNumeroValido(id) &&  esNumeroValido(page) && esNumeroValido(pageSize)) {
             res.status(400).json({ error: 'El ID debe ser un número' });
         }
-        const exercises = await exerciseService.getByMaterial(id);
+        const exercises = await exerciseService.getByMaterial(id, page, pageSize);
         res.status(200).json(exercises);
     } catch (error) {
         console.error(error);

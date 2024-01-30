@@ -3,6 +3,7 @@ import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { plantillaService } from '../service/plantilla_posts_service';
 import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
 import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
+import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
 
 
 
@@ -23,7 +24,7 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
+        const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).send();

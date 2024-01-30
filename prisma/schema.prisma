@@ -40,11 +40,81 @@ model ejercicios {
   @@index([user_id], map: "FK_ejercicios_usuario")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ejercicios_detallados {
+  detailed_exercise_id            Int                              @id @default(autoincrement())
+  grouped_detailed_exercised_id   Int?
+  exercise_id                     Int?
+  register_type_id                Int
+  notes                           String?                          @db.Text
+  order                           Int
+  ejercicios                      ejercicios?                      @relation(fields: [exercise_id], references: [exercise_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios")
+  ejercicios_detallados_agrupados ejercicios_detallados_agrupados? @relation(fields: [grouped_detailed_exercised_id], references: [grouped_detailed_exercised_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios_detallados_agrupados")
+  tipo_de_registro                tipo_de_registro                 @relation(fields: [register_type_id], references: [register_type_id], onDelete: Cascade, map: "FK_ejercicios_detallados_tipo_de_registro")
+  sets_ejercicios_entrada         sets_ejercicios_entrada[]
+
+  @@index([exercise_id], map: "FK_ejercicios_detallados_ejercicios")
+  @@index([grouped_detailed_exercised_id], map: "FK_ejercicios_detallados_ejercicios_detallados_agrupados")
+  @@index([register_type_id], map: "FK_ejercicios_detallados_tipo_de_registro")
+}
+
+model ejercicios_detallados_agrupados {
+  grouped_detailed_exercised_id Int                      @id @default(autoincrement())
+  session_id                    Int?
+  order                         Int?
+  ejercicios_detallados         ejercicios_detallados[]
+  sesion_de_entrenamiento       sesion_de_entrenamiento? @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ejercicios_detallados_agrupados_sesion_de_entrenamiento")
+
+  @@index([session_id], map: "FK_ejercicios_detallados_agrupados_sesion_de_entrenamiento")
+}
+
+model etiquetas {
+  tag_id                      Int                         @id @default(autoincrement())
+  template_id                 Int
+  experience                  String?                     @db.VarChar(255)
+  interests                   String?                     @db.VarChar(50)
+  objectives                  String?                     @db.VarChar(50)
+  equipment                   String?                     @db.VarChar(50)
+  duration                    String?                     @db.VarChar(50)
+  plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "FK_emparejamiento_plantillas_de_entrenamiento")
+
+  @@index([template_id], map: "FK_emparejamiento_plantillas_de_entrenamiento")
+}
+
 model grupo_muscular {
   muscle_group_id Int          @id @default(autoincrement())
   name            String?      @unique(map: "name") @db.VarChar(50)
   ejercicios      ejercicios[]
+}
+
+model material {
+  material_id Int          @id @default(autoincrement())
+  name        String       @default("0") @db.VarChar(50)
+  ejercicios  ejercicios[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model me_gusta_comentarios {
+  liked_comment_id  Int               @id @default(autoincrement())
+  comment_id        Int
+  user_id           Int
+  comentario_review comentario_review @relation(fields: [comment_id], references: [comment_id], onDelete: Cascade, map: "FK_me_gusta_comentarios_comentario_review")
+  usuario           usuario           @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_me_gusta_comentarios_usuario")
+
+  @@index([comment_id], map: "FK_me_gusta_comentarios_comentario_review")
+  @@index([user_id], map: "FK_me_gusta_comentarios_usuario")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model me_gusta_reviews {
+  liked_review_id Int     @id @default(autoincrement())
+  review_id       Int
+  user_id         Int
+  reviews         reviews @relation(fields: [review_id], references: [review_id], onDelete: Cascade, map: "FK_me_gusta_reviews_reviews")
+  usuario         usuario @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "me_gusta_reviews_ibfk_2")
+
+  @@unique([review_id, user_id], map: "review_id_user_id")
+  @@index([review_id], map: "review_id")
+  @@index([user_id], map: "user_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -65,9 +135,28 @@ model plantillas_de_entrenamiento {
   hidden                  Boolean                   @default(false) @db.Bit(1)
   fecha_creacion          DateTime?                 @db.Date
   etiquetas               etiquetas[]
+  usuario                 usuario                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_plantillas_de_entrenamiento_usuario")
   reviews                 reviews[]
   rutinas_guardadas       rutinas_guardadas[]
   sesion_de_entrenamiento sesion_de_entrenamiento[]
+
+  @@index([user_id], map: "FK_plantillas_de_entrenamiento_usuario")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model registro_set {
+  register_set_id         Int                     @id @default(autoincrement())
+  set_id                  Int
+  user_id                 Int
+  reps                    Int?
+  weight                  Int?
+  time                    Int?
+  timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
+  sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_sets_ejercicios_entrada")
+  usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_usuario")
+
+  @@index([set_id], map: "FK_registro_set_sets_ejercicios_entrada")
+  @@index([user_id], map: "FK_registro_set_usuario")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -87,68 +176,10 @@ model reviews {
   @@index([user_id], map: "FK_reviews_usuario")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model sets_ejercicios_entrada {
-  set_id                Int                    @id @default(autoincrement())
-  detailed_exercise_id  Int?
-  set_order             Int?
-  reps                  Int?
-  time                  DateTime?              @db.Date
-  weight                Float?
-  video                 String?                @db.VarChar(255)
-  registro_set          registro_set[]
-  ejercicios_detallados ejercicios_detallados? @relation(fields: [detailed_exercise_id], references: [detailed_exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
-
-  @@index([detailed_exercise_id], map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model usuario {
-  user_id              Int                    @id @default(autoincrement())
-  username             String                 @db.VarChar(255)
-  email                String                 @unique(map: "email") @db.VarChar(255)
-  password             String                 @db.VarChar(255)
-  profile_picture      String?                @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
-  profile_id           Int                    @default(2)
-  birth                DateTime?              @default(dbgenerated("(now())")) @db.Date
-  public               Boolean                @default(true) @db.Bit(1)
-  comentario_review    comentario_review[]
-  ejercicios           ejercicios[]
-  me_gusta_comentarios me_gusta_comentarios[]
-  me_gusta_reviews     me_gusta_reviews[]
-  registro_set         registro_set[]
-  reviews              reviews[]
-  rutinas_guardadas    rutinas_guardadas[]
-  perfil               perfil                 @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade, map: "FK_usuario_perfil")
-
-  @@index([profile_id], map: "FK_usuario_perfil")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model sesion_de_entrenamiento {
-  session_id                  Int                         @id @default(autoincrement())
-  template_id                 Int
-  session_name                String                      @db.VarChar(50)
-  session_date                DateTime                    @default(dbgenerated("(now())")) @db.Date
-  notes                       String?                     @db.Text
-  order                       Int                         @default(0)
-  ejercicios_detallados       ejercicios_detallados[]
-  plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
-
-  @@index([template_id], map: "template_id")
-}
-
-model etiquetas {
-  tag_id                      Int                         @id @default(autoincrement())
-  template_id                 Int
-  experience                  String?                     @db.VarChar(255)
-  interests                   String?                     @db.VarChar(50)
-  objectives                  String?                     @db.VarChar(50)
-  equipment                   String?                     @db.VarChar(50)
-  duration                    String?                     @db.VarChar(50)
-  plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "FK_emparejamiento_plantillas_de_entrenamiento")
-
-  @@index([template_id], map: "FK_emparejamiento_plantillas_de_entrenamiento")
+model rutinas_archivadas {
+  archived_id Int @id @default(autoincrement())
+  template_id Int @default(0)
+  user_id     Int @default(0)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -164,77 +195,59 @@ model rutinas_guardadas {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model me_gusta_comentarios {
-  liked_comment_id  Int               @id @default(autoincrement())
-  comment_id        Int
-  user_id           Int
-  comentario_review comentario_review @relation(fields: [comment_id], references: [comment_id], onDelete: Cascade, map: "FK_me_gusta_comentarios_comentario_review")
-  usuario           usuario           @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "me_gusta_comentarios_ibfk_2")
+model sesion_de_entrenamiento {
+  session_id                      Int                               @id @default(autoincrement())
+  template_id                     Int
+  session_name                    String                            @db.VarChar(50)
+  session_date                    DateTime                          @default(dbgenerated("(now())")) @db.Date
+  notes                           String?                           @db.Text
+  order                           Int                               @default(0)
+  ejercicios_detallados_agrupados ejercicios_detallados_agrupados[]
+  plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
 
-  @@index([user_id], map: "FK_me_gusta_comentarios_usuario")
-  @@index([comment_id], map: "FK_me_gusta_comentarios_comentario_review")
+  @@index([template_id], map: "template_id")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model me_gusta_reviews {
-  liked_review_id Int     @id @default(autoincrement())
-  review_id       Int
-  user_id         Int
-  reviews         reviews @relation(fields: [review_id], references: [review_id], onDelete: Cascade, map: "FK_me_gusta_reviews_reviews")
-  usuario         usuario @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "me_gusta_reviews_ibfk_2")
+model sets_ejercicios_entrada {
+  set_id                Int                    @id @default(autoincrement())
+  detailed_exercise_id  Int?
+  set_order             Int?
+  reps                  Int?
+  time                  DateTime?              @db.Date
+  weight                Float?
+  video                 String?                @db.VarChar(255)
+  registro_set          registro_set[]
+  ejercicios_detallados ejercicios_detallados? @relation(fields: [detailed_exercise_id], references: [detailed_exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
 
-  @@unique([review_id, user_id], map: "review_id_user_id")
-  @@index([review_id], map: "review_id")
-  @@index([user_id], map: "user_id")
-}
-
-model rutinas_archivadas {
-  archived_id Int @id @default(autoincrement())
-  template_id Int @default(0)
-  user_id     Int @default(0)
-}
-
-model ejercicios_detallados {
-  detailed_exercise_id    Int                       @id @default(autoincrement())
-  session_id              Int
-  exercise_id             Int?
-  register_type_id        Int
-  notes                   String?                   @db.Text
-  order                   Int
-  ejercicios              ejercicios?               @relation(fields: [exercise_id], references: [exercise_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios")
-  sesion_de_entrenamiento sesion_de_entrenamiento   @relation(fields: [session_id], references: [session_id], onDelete: Cascade, map: "FK_ejercicios_detallados_sesion_de_entrenamiento")
-  tipo_de_registro        tipo_de_registro          @relation(fields: [register_type_id], references: [register_type_id], onDelete: Cascade, map: "FK_ejercicios_detallados_tipo_de_registro")
-  sets_ejercicios_entrada sets_ejercicios_entrada[]
-
-  @@index([exercise_id], map: "FK_ejercicios_detallados_ejercicios")
-  @@index([session_id], map: "FK_ejercicios_detallados_sesion_de_entrenamiento")
-  @@index([register_type_id], map: "FK_ejercicios_detallados_tipo_de_registro")
-}
-
-model material {
-  material_id Int          @id @default(autoincrement())
-  name        String       @default("0") @db.VarChar(50)
-  ejercicios  ejercicios[]
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model registro_set {
-  register_set_id         Int                     @id @default(autoincrement())
-  set_id                  Int
-  user_id                 Int
-  reps                    Int?
-  weight                  Int?
-  time                    Int?
-  timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
-  sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_sets_ejercicios_entrada")
-  usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_usuario")
-
-  @@index([set_id], map: "FK_registro_set_sets_ejercicios_entrada")
-  @@index([user_id], map: "FK_registro_set_usuario")
+  @@index([detailed_exercise_id], map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
 }
 
 model tipo_de_registro {
   register_type_id      Int                     @id @default(autoincrement())
   name                  String?                 @db.VarChar(50)
   ejercicios_detallados ejercicios_detallados[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model usuario {
+  user_id                     Int                           @id @default(autoincrement())
+  username                    String                        @db.VarChar(255)
+  email                       String                        @unique(map: "email") @db.VarChar(255)
+  password                    String                        @db.VarChar(255)
+  profile_picture             String?                       @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
+  profile_id                  Int                           @default(2)
+  birth                       DateTime?                     @default(dbgenerated("(now())")) @db.Date
+  public                      Boolean                       @default(true) @db.Bit(1)
+  comentario_review           comentario_review[]
+  ejercicios                  ejercicios[]
+  me_gusta_comentarios        me_gusta_comentarios[]
+  me_gusta_reviews            me_gusta_reviews[]
+  plantillas_de_entrenamiento plantillas_de_entrenamiento[]
+  registro_set                registro_set[]
+  reviews                     reviews[]
+  rutinas_guardadas           rutinas_guardadas[]
+  perfil                      perfil                        @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade, map: "FK_usuario_perfil")
+
+  @@index([profile_id], map: "FK_usuario_perfil")
 }

@@ -1,6 +1,7 @@
 import { plantillas_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 import { Etiqueta_In } from "../interfaces/etiquetas_input";
+import { PlantillaDeEntrenamientoConPromedio } from "../interfaces/posts";
 
 
 export const plantillaService = {
@@ -13,7 +14,7 @@ export const plantillaService = {
     * @param {number} pageSize - The number of items per page.
     * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
     */
-    async getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number) {
+    async getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
       try {
           const offset = (page - 1) * pageSize;
           const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
@@ -23,11 +24,40 @@ export const plantillaService = {
               skip: offset,
               take: pageSize,
               include: {
-                etiquetas: true
+                  etiquetas: true,
+                  usuario: {
+                      select: {
+                          username: true,
+                      }
+                  }
               }
           });
-  
-          return plantillaPosts;
+          
+       
+          const plantillasConPromedio = await Promise.all(plantillaPosts.map(async (plantilla) => {
+            const aggregateRating = await db.reviews.aggregate({
+                _avg: {
+                    rating: true,
+                },
+                _count: {
+                    rating: true
+                },
+                where: {
+                    template_id: plantilla.template_id,
+                }
+            });
+        
+            return {
+                ...plantilla,
+                rating_average: aggregateRating._avg.rating || 0,
+                num_reviews: aggregateRating._count.rating || 0
+            };
+        }));
+        
+        return plantillasConPromedio;
+        
+     
+        
       } catch (error) {
           console.error(error);
           throw error;
@@ -46,7 +76,7 @@ async  getPlantillaById(template_id:number) : Promise<plantillas_de_entrenamient
     try{
         return db.plantillas_de_entrenamiento.findUnique({
             where: {
-                template_id:template_id
+                template_id:template_id,
             }
         })
     }

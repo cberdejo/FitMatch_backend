@@ -6,26 +6,37 @@ export const exerciseService = {
         return await db.ejercicios.findMany({   
         })
     }, 
-    async getByMuscleGroup (id: number)  {
+    async getByMuscleGroup (id: number, page: number, pageSize: number)  {
+        const offset = (page - 1) * pageSize;
         return await db.ejercicios.findMany({
             where: {muscle_group_id:id},
+            skip: offset,
+            take: pageSize,
         })
     },
 
-    async getByMaterial (id: number) {
+    async getByMaterial (id: number, page: number, pageSize: number)  {
+        const offset = (page - 1) * pageSize;
+
         return await db.ejercicios.findMany({
             where: {material_id:id},
+            skip: offset,
+            take: pageSize,
         })
     },
 
-    getAllByUserId(userId: number) {
+    getAllByUserId(userId: number, page: number, pageSize: number) {
+       
+        const offset = (page - 1) * pageSize;
         return db.ejercicios.findMany({
             where: {
                 OR: [
                     { user_id: null },
                     { user_id: userId }
                 ]
-            }
+            },
+            skip: offset,
+            take: pageSize,
         });
     }
     

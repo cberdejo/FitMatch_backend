@@ -34,26 +34,8 @@ export const plantillaService = {
           });
           
        
-          const plantillasConPromedio = await Promise.all(plantillaPosts.map(async (plantilla) => {
-            const aggregateRating = await db.reviews.aggregate({
-                _avg: {
-                    rating: true,
-                },
-                _count: {
-                    rating: true
-                },
-                where: {
-                    template_id: plantilla.template_id,
-                }
-            });
-        
-            return {
-                ...plantilla,
-                rating_average: aggregateRating._avg.rating || 0,
-                num_reviews: aggregateRating._count.rating || 0
-            };
-        }));
-        
+        const plantillasConPromedio = getAggregatedReviewsForTemplates(plantillaPosts);
+
         return plantillasConPromedio;
         
      
@@ -200,7 +182,29 @@ async  postPlantilla(plantilla: {
 
 }
  
-   
+export const getAggregatedReviewsForTemplates = async (templates: plantillas_de_entrenamiento[]): Promise<PlantillaDeEntrenamientoConPromedio[]> => {
+  const aggregates = templates.map(async (template) => {
+    const aggregateRating = await db.reviews.aggregate({
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        rating: true
+      },
+      where: {
+        template_id: template.template_id,
+      }
+    });
+    
+    return {
+      ...template,
+      rating_average: aggregateRating._avg.rating || 0,
+      num_reviews: aggregateRating._count.rating || 0
+    };
+  });
+  
+  return Promise.all(aggregates);
+};
 
 
 

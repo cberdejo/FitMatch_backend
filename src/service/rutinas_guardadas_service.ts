@@ -1,4 +1,6 @@
 import db  from "../config/database";
+import { PlantillaDeEntrenamientoConPromedio } from "../interfaces/posts";
+import { getAggregatedReviewsForTemplates } from "./plantilla_posts_service";
 
 
 
@@ -29,7 +31,7 @@ export const rutinaGuardadaService = {
 
 
    
-    async getGuardadasPlantillaPosts(userId: number, page: number, pageSize: number) {
+    async getGuardadasPlantillaPosts(userId: number, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
         try {
             const offset = (page - 1) * pageSize;
     
@@ -50,12 +52,17 @@ export const rutinaGuardadaService = {
                     template_id: { in: plantillasIds } ,
                 },
                 include: {
-                    
-                    etiquetas: true
+                    etiquetas: true,
+                    usuario: {
+                        select: {
+                            username: true,
+                        }
+                    }
                 }
             });
 
-            return plantillas;
+            const plantillasConPromedioYReviewsNum: PlantillaDeEntrenamientoConPromedio[] = await getAggregatedReviewsForTemplates(plantillas);
+            return plantillasConPromedioYReviewsNum;
 
         } catch (error) {
             console.error(error);
@@ -85,7 +92,7 @@ export const rutinaArchivadaService = {
 
 
    
-    async getArchivadasPlantillaPosts(userId: number, page: number, pageSize: number) {
+    async getArchivadasPlantillaPosts(userId: number, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
         try {
             const offset = (page - 1) * pageSize;
     
@@ -106,12 +113,17 @@ export const rutinaArchivadaService = {
                     template_id: { in: plantillasIds } ,
                 },
                 include: {
-                    
-                    etiquetas: true
+                    etiquetas: true,
+                    usuario: {
+                        select: {
+                            username: true,
+                        }
+                    }
                 }
             });
-
-            return plantillas;
+            
+            const plantillasConPromedioYReviewsNum: PlantillaDeEntrenamientoConPromedio[] = await getAggregatedReviewsForTemplates(plantillas);
+            return plantillasConPromedioYReviewsNum;
 
         } catch (error) {
             console.error(error);

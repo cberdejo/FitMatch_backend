@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { rutinaArchivadaService, rutinaGuardadaService } from '../service/rutinas_guardadas_service';
+import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
+// import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
 
 /**
  * Creates a new saved routine.
@@ -32,7 +34,7 @@ export async function getRutinasGuardadas(req: Request, res: Response) {
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const rutinas = await rutinaGuardadaService.getGuardadasPlantillaPosts(userId,page, pageSize);
+        const rutinas: PlantillaDeEntrenamientoConPromedio[] = await rutinaGuardadaService.getGuardadasPlantillaPosts(userId,page, pageSize);
         res.status(200).json(rutinas);
     } catch (error) {
         console.error(error);
@@ -92,7 +94,7 @@ export async function getRutinasArchivadas(req: Request, res: Response) {
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const rutinas = await rutinaArchivadaService.getArchivadasPlantillaPosts(userId,page, pageSize);
+        const rutinas: PlantillaDeEntrenamientoConPromedio[] = await rutinaArchivadaService.getArchivadasPlantillaPosts(userId,page, pageSize);
         res.status(200).json(rutinas);
     } catch (error) {
         console.error(error);

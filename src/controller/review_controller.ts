@@ -147,6 +147,7 @@ async function answerReview(req: Request, res: Response) {
         }
         const extendedComment = {
             username: user.username,
+            profile_picture: user.profile_picture,
             ...comment
         }  
         

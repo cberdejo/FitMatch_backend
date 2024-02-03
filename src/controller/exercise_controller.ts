@@ -5,13 +5,22 @@ import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 export async function getAllExercises(req: Request, res: Response): Promise<void> {
     try {
         const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
+        
+        //filtros
+        const name: string | null = req.query.name ? req.query.name as string : null;
+        const idGrupoMuscular: number | null = req.query.idGrupoMuscular ? parseInt(req.query.idGrupoMuscular as string) : null;
+        const idMaterial: number | null = req.query.idMaterial ? parseInt(req.query.idMaterial as string) : null;
+
+        //paginacion
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 20;
 
+        //Solo voy a filtrar si tengo userId 
         if (userId && esNumeroValido(userId) && esNumeroValido(page) && esNumeroValido(pageSize)) {
-            const exercises = await exerciseService.getAllByUserId(userId, page, pageSize);
+            const exercises = await exerciseService.getAllFiltered(userId, page, pageSize, name, idGrupoMuscular, idMaterial);
             res.status(200).json(exercises);
         }else{
+            console.log("ejercicios sin filtros");
             const exercises = await exerciseService.getAll();
             res.status(200).json(exercises);
         }

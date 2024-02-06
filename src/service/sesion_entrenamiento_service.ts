@@ -10,27 +10,39 @@ export const sesionEntrenamientoService = {
      * @param {number} template_id - The ID of the template to use for the session.
      * @return {Promise} A promise that resolves to the created session.
      */
-    async create(template_id: number, ejercicios: any[], session_name: string, notes: string) {
-        return db.$transaction(async (prisma) => {
-            const sesion = await prisma.sesion_de_entrenamiento.create({
-                data: { 
-                    template_id: template_id,
-                    session_name: session_name,
-                    notes: notes
-                 }
-            });
+    // async create(template_id: number, ejercicios: any[], session_name: string, notes: string) {
+    //     return db.$transaction(async (prisma) => {
+    //         const sesion = await prisma.sesion_de_entrenamiento.create({
+    //             data: { 
+    //                 template_id: template_id,
+    //                 session_name: session_name,
+    //                 notes: notes
+    //              }
+    //         });
     
-            for (const ejercicio of ejercicios) {
-                await prisma.ejercicios_detallados.create({
-                    data: {
-                        ...ejercicio,
-                        session_id: sesion.session_id,
-                    }
-                });
+    //         for (const ejercicio of ejercicios) {
+    //             await prisma.ejercicios_detallados.create({
+    //                 data: {
+    //                     ...ejercicio,
+    //                     session_id: sesion.session_id,
+    //                 }
+    //             });
+    //         }
+    
+    //         return sesion;
+    //     });
+    // },
+
+    async create(template_id: number, session_name: string, notes: string, order: number) {
+        return db.sesion_de_entrenamiento.create({
+            data: {
+                template_id: template_id,
+                session_name: session_name,
+                notes: notes,
+                order: order
             }
-    
-            return sesion;
-        });
+        })
+        
     },
 
     /**
@@ -76,6 +88,17 @@ export const sesionEntrenamientoService = {
        return db.sesion_de_entrenamiento.findMany({
            where: { template_id:template_id },
            orderBy: { order: 'asc' },
+           include: {
+               ejercicios_detallados_agrupados: {
+                include: {
+                    ejercicios_detallados: {
+                        include: {
+                            sets_ejercicios_entrada: true
+                        }
+                    }
+                }
+               }
+           }
        })
    }
 };

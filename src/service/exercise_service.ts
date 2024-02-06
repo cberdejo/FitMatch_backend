@@ -2,6 +2,19 @@
 import db  from "../config/database";
 
 export const exerciseService = {
+
+    async create(userId : number, name : string, description : string, muscle_group_id : number, material_id : number) {
+        return await db.ejercicios.create({
+            data: {
+                name: name,
+                description: description,
+                user_id: userId,
+                muscle_group_id: muscle_group_id,
+                material_id: material_id
+            }
+        })
+        
+    },
     async getAll() {
         return await db.ejercicios.findMany({   
         })

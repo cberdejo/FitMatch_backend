@@ -114,11 +114,29 @@ export async function getExercisesByMaterial(req: Request, res: Response): Promi
 
         if (!esNumeroValido(id) &&  esNumeroValido(page) && esNumeroValido(pageSize)) {
             res.status(400).json({ error: 'El ID debe ser un número' });
+            return;
         }
         const exercises = await exerciseService.getByMaterial(id, page, pageSize);
         res.status(200).json(exercises);
     } catch (error) {
         console.error(error);
         
+    }
+}
+
+export async function createExercise(req: Request, res: Response): Promise<void> {
+    try {
+        const userId = req.body;
+        const name = req.body;
+        const description = req.body;
+        const muscleGroupId = req.body;
+        const materialId = req.body; 
+
+
+        const createdExercise = await exerciseService.create( userId, name, description, muscleGroupId, materialId);
+        res.status(201).json(createdExercise);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al crear el ejercicio' });
     }
 }

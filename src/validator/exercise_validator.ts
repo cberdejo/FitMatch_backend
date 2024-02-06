@@ -21,3 +21,32 @@ export async function validateGetExercises(req: Request, res: Response, next: Ne
     return next();
 
 }
+
+export async function validateCreateExercisesByMuscleGroup(req: Request, res: Response, next: NextFunction) {
+    const userId = req.body;
+    const name = req.body;
+
+    const muscleGroupId = req.body;
+    const materialId = req.body; 
+
+    if (!esNumeroValido(userId)) {
+        res.status(400).json({ error: 'El ID del usuario debe ser un número' });
+        return ;
+    }
+    if (!name) {
+        res.status(400).json({ error: 'El nombre del ejercicio no puede estar vacío.' });
+        return ;
+    }
+    if (!esNumeroValido(muscleGroupId)) {
+        res.status(400).json({ error: 'El ID del grupo muscular debe ser un número' });
+        return ;
+    }
+    if (!esNumeroValido(materialId)) {
+        res.status(400).json({ error: 'El ID del material debe ser un número' });
+        return ;
+    }
+
+    return next();
+
+}
+  

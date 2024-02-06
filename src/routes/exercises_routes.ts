@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import { getAllExercises, getAllMaterials, getAllMuscleGroups, getAllTypesRegisters, getExercisesByMaterial, getExercisesByMuscleGroup, getMaterialsById, getMuscleGroupsById } from '../controller/exercise_controller';
 import { paramIdValidation } from '../validator/shared_validator';
-import { validateGetExercises } from '../validator/exercise_validator';
+import { validateCreateExercisesByMuscleGroup, validateGetExercises } from '../validator/exercise_validator';
 
 
 const router: Router = express.Router();
@@ -20,6 +20,8 @@ router.get('/tipoRegistro', getAllTypesRegisters);
 router.get ('/ejercicios/grupoMuscular/:muscle_group',  getExercisesByMuscleGroup);
 router.get('/ejercicios/material/:material', getExercisesByMaterial);
 
+router.post('/ejercicios',validateCreateExercisesByMuscleGroup, getExercisesByMuscleGroup );
+router.get('/superset', );
 
 
 export default router;

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { exerciseService, materialService, muscleGroupService, typeRegisterService } from '../service/exercise_service';
+import { exerciseService, groupedDetailedExercisesService, materialService, muscleGroupService, typeRegisterService } from '../service/exercise_service';
 import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 import { ejercicios_detallados_agrupados } from '@prisma/client';
 
@@ -150,7 +150,7 @@ export async function getGroupedDetailedExercises(req: Request, res: Response): 
             return;
         }
 
-        const groupedDetailedExercises: ejercicios_detallados_agrupados [] | null= await exerciseService.getGropuedDetailedExercises(id);
+        const groupedDetailedExercises: ejercicios_detallados_agrupados [] | null= await groupedDetailedExercisesService.getBySessionId(id);
         if (!groupedDetailedExercises) {
             res.status(404).json({ error: 'No se encontraron ejercicios detallados agrupados para la sesión' });
             return;
@@ -162,5 +162,21 @@ export async function getGroupedDetailedExercises(req: Request, res: Response): 
     }
     
 }
+
+// Dentro de tu archivo de controladores
+
+export async function createGroupedDetailedExercises(req: Request, res: Response): Promise<void> {
+    try {
+        const { sessionId, order,  exercises } = req.body; 
+
+        const createdGroupedDetailedExercises = await groupedDetailedExercisesService.create(sessionId,order, exercises);
+        
+        res.status(201).json(createdGroupedDetailedExercises);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al crear ejercicios detallados agrupados' });
+    }
+}
+
 
 

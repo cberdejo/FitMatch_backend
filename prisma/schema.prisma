@@ -60,7 +60,7 @@ model ejercicios_detallados {
 model ejercicios_detallados_agrupados {
   grouped_detailed_exercised_id Int                      @id @default(autoincrement())
   session_id                    Int?
-  order                         Int?
+  order                         Int
   ejercicios_detallados         ejercicios_detallados[]
   sesion_de_entrenamiento       sesion_de_entrenamiento? @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ejercicios_detallados_agrupados_sesion_de_entrenamiento")
 

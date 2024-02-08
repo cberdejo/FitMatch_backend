@@ -112,9 +112,15 @@ export const exerciseService = {
   
       },
 
-      async getGropuedDetailedExercises(session_id: number): Promise<ejercicios_detallados_agrupados []| null> {
+     
+    
+      
+    }
 
-          try {
+export const groupedDetailedExercisesService = {
+    async getBySessionId(session_id: number): Promise<ejercicios_detallados_agrupados []| null> {
+
+        try {
             return await db.ejercicios_detallados_agrupados.findMany({
                 where: {
                 session_id: session_id
@@ -127,17 +133,73 @@ export const exerciseService = {
                     }
                 }
             });
-          } catch (error) {
+        } catch (error) {
             console.error(error);
             throw error;
-          } finally {
+        } finally {
             await db.$disconnect();
-          }
-      }
+        }
+    },
+    async create(sessionId: number, order: number, exercises: Array<{exerciseId: number, order: number, typeId: number, notes?: string}>): Promise<ejercicios_detallados_agrupados> {
     
-      
+        try{
+            const groupedDetailedExercise = await db.ejercicios_detallados_agrupados.create({
+                data: {
+                    session_id: sessionId,
+                    order: order,
+                    
+                    ejercicios_detallados: {
+                        create: exercises.map(exercise => ({
+                            exercise_id: exercise.exerciseId,
+                            order: exercise.order,
+                            register_type_id: exercise.typeId,
+                            notes: exercise.notes,
+                        })),
+                        
+                    },
+                },
+            });
+        
+            return groupedDetailedExercise
+        } catch(error){
+            console.log(error);
+            throw error;
+        } finally {
+            await db.$disconnect();
+        }
+        
+       
+    }, 
+    async update(groupedDetailedExerciseId: number, updateData: {
+        session_id?: number,
+        order?: number,
+        ejercicios_detallados?: Array<{exerciseId: number, order: number, typeId: number, notes?: string}>
+    }): Promise<ejercicios_detallados_agrupados> {
+
+        const updatedGroupedDetailedExercise = await db.ejercicios_detallados_agrupados.update({
+            where: { grouped_detailed_exercised_id: groupedDetailedExerciseId },
+            data: {
+                session_id: updateData.session_id,
+                order: updateData.order,
+                ejercicios_detallados: {
+                 
+                    deleteMany: {}, 
+                    create: updateData.ejercicios_detallados?.map(exercise => ({
+                        exercise_id: exercise.exerciseId,
+                        order: exercise.order,
+                        register_type_id: exercise.typeId,
+                        notes: exercise.notes,
+                    })) || [],
+                },
+            },
+            include: {
+                ejercicios_detallados: true,
+            },
+        });
+    
+        return updatedGroupedDetailedExercise;
     }
-      
+}
 
 export const muscleGroupService = {
     async getAll() {

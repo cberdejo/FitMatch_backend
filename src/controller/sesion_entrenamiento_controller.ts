@@ -1,6 +1,7 @@
 
 import { Request, Response } from 'express';
 import { sesionEntrenamientoService } from '../service/sesion_entrenamiento_service';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 /**
@@ -25,7 +26,6 @@ export async function createSesionEntrenamiento(req: Request, res: Response): Pr
     try {
         const  { template_id, session_name, notes, order} = req.body;
         const createdSession = await sesionEntrenamientoService.create(template_id, session_name, notes, order);
-        console.log(createdSession);
         res.status(201).json(createdSession);
         
     } catch (error) {
@@ -57,16 +57,23 @@ export async function deleteSesionEntrenamiento(req: Request, res: Response) {
 
 export async function editSesionEntrenamiento(req: Request, res: Response): Promise<void> {
     try {
-        const { session_id, session_name, notes, order, template_id, session_date} = req.body;
+
+        const sessionId = parseInt(req.params.sessionId);
+        if (!esNumeroValido(sessionId)) {
+            console.log('Error: El ID de la sesión debe ser un número.', sessionId);
+            res.status(400).json({ error: 'El ID de la sesión debe ser un número.' });
+            return;
+        }
+
+        const sessionData = req.body;
         
-        const updatedSession = await sesionEntrenamientoService.updateSession(session_id,template_id, {
-            session_name, 
-            notes, 
-            order, 
+        const updatedSession = await sesionEntrenamientoService.update(sessionId, sessionData);
       
-            session_date: new Date(session_date),
-         
-        });
+        if (!updatedSession) {
+
+            res.status(404).json({ error: 'Sesión de entrenamiento no encontrada.' });
+            return;
+        }
 
         res.json(updatedSession);
     } catch (error) {

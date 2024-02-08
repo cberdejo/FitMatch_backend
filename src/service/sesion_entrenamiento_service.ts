@@ -57,36 +57,105 @@ export const sesionEntrenamientoService = {
         });
     },
 
-    /**
-     * Updates a session with the given session ID and session data.
-     *
-     * @param {number} session_id - The ID of the session to update.
-     * @param {Partial<sesion_de_entrenamiento>} sessionData - The partial session data to update.
-     * @return {Promise<sesion_de_entrenamiento>} - The updated session.
-     */
-  // Asumiendo db como instancia de PrismaClient
-async  updateSession(session_id: number,  template_id: number, sessionUpdateData: {
-    session_name?: string,
-    notes?: string,
-    order?: number,
-   
-    session_date?: Date,
-  
-  
-}): Promise<sesion_de_entrenamiento> {
-    const updatedSession = await db.sesion_de_entrenamiento.update({
-        where: { session_id: session_id , template_id: template_id},
-        data: {
-            ...sessionUpdateData,
-           
-        },
-        include: {
-            ejercicios_detallados_agrupados: true,
-        },
-    });
 
-    return updatedSession;
-},
+    
+// async  updateSession(session_id: number,  template_id: number, sessionUpdateData: {
+//     session_name?: string,
+//     notes?: string,
+//     order?: number,
+//     session_date?: Date,
+  
+  
+// }): Promise<sesion_de_entrenamiento> {
+//     const updatedSession = await db.sesion_de_entrenamiento.update({
+//         where: { session_id: session_id , template_id: template_id},
+//         data: {
+//             ...sessionUpdateData,
+           
+//         },
+//         include: {
+//             ejercicios_detallados_agrupados: true,
+//         },
+//     });
+
+//     return updatedSession;
+// },
+    async update(sessionId: number, sessionData: {
+        session_name?: string,
+        session_date?: Date,
+        notes?: string,
+        order?: number,
+        ejercicios_detallados_agrupados?: Array<{ // Hacer esta propiedad opcional
+            order: number,
+            ejercicios_detallados: Array<{
+                exercise_id: number,
+                order: number,
+                register_type_id: number,
+                notes?: string
+            }>
+        }>
+    }): Promise<sesion_de_entrenamiento | null> {
+        try {
+            const transaction = await db.$transaction(async (prisma) => {
+                // Actualiza primero la sesión de entrenamiento con los datos básicos proporcionados
+                await prisma.sesion_de_entrenamiento.update({
+                    where: { session_id: sessionId },
+                    data: {
+                        session_name: sessionData.session_name,
+                        session_date: sessionData.session_date,
+                        notes: sessionData.notes,
+                        order: sessionData.order
+                    },
+                });
+
+                // Verificar si ejercicios_detallados_agrupados fue proporcionado antes de intentar eliminar y reinsertar
+                if (sessionData.ejercicios_detallados_agrupados) {
+                    // Eliminar todos los grupos de ejercicios detallados existentes para esta sesión
+                    await prisma.ejercicios_detallados_agrupados.deleteMany({
+                        where: { session_id: sessionId },
+                    });
+
+                    // Reinserta los grupos de ejercicios detallados y sus ejercicios detallados
+                    for (const grupo of sessionData.ejercicios_detallados_agrupados) {
+                        await prisma.ejercicios_detallados_agrupados.create({
+                            data: {
+                                session_id: sessionId,
+                                order: grupo.order,
+                                ejercicios_detallados: {
+                                    create: grupo.ejercicios_detallados.map(ejercicio => ({
+                                        exercise_id: ejercicio.exercise_id,
+                                        order: ejercicio.order,
+                                        register_type_id: ejercicio.register_type_id,
+                                        notes: ejercicio.notes,
+                                    })),
+                                },
+                            },
+                        });
+                    }
+                }
+
+                // Retorna la sesión de entrenamiento actualizada con los nuevos grupos de ejercicios detallados (si se proporcionaron)
+                return prisma.sesion_de_entrenamiento.findUnique({
+                    where: { session_id: sessionId },
+                    include: {
+                        ejercicios_detallados_agrupados: {
+                            include: {
+                                ejercicios_detallados: true,
+                            },
+                        },
+                    },
+                });
+            });
+
+            return transaction;
+        } catch (error) {
+            console.error('Error al actualizar la sesión de entrenamiento:', error);
+            throw error;
+        } finally {
+            await db.$disconnect();
+        }
+    },
+
 
 
    /**
@@ -117,17 +186,17 @@ async  updateSession(session_id: number,  template_id: number, sessionUpdateData
        return db.sesion_de_entrenamiento.findMany({
            where: { template_id:template_id },
            orderBy: { order: 'asc' },
-           include: {
-               ejercicios_detallados_agrupados: {
-                include: {
-                    ejercicios_detallados: {
-                        include: {
-                            sets_ejercicios_entrada: true
-                        }
-                    }
-                }
-               }
-           }
+        //    include: {
+        //        ejercicios_detallados_agrupados: {
+        //         include: {
+        //             ejercicios_detallados: {
+        //                 include: {
+        //                     sets_ejercicios_entrada: true
+        //                 }
+        //             }
+        //         }
+        //        }
+        //    }
        })
    }
 };

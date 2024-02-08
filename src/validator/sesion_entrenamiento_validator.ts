@@ -48,32 +48,3 @@ export async function validateCreateSesionEntrenamiento(req: Request, res: Respo
 
     next();
 }
-
-/**
- * Validates the edit session of training.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @param {NextFunction} next - The next function to call.
- * @return {Promise<void>} - Resolves with void.
- */
-export async function validateEditSesionEntrenamiento(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { template_id, session_id, session_name } = req.body;
-
-    if (!esNumeroValido(template_id)) {
-         res.status(400).json({ error: 'El template_id debe ser un número.' });
-         return;
-    }
-
-    if (!esNumeroValido(session_id)) { 
-         res.status(400).json({ error: 'El session_id debe ser un número.' });
-         return;
-    }
-
-    if (!session_name) {
-         res.status(400).json({ error: 'El nombre de la sesión es obligatorio.' });
-         return;
-    }
-
-    next(); 
-}

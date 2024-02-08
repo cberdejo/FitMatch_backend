@@ -56,7 +56,7 @@ export async function getPlantillaPostById(req: Request, res: Response): Promise
             res.status(404).json({ error: 'Plantilla no encontrada.' });
             return;
         }
-        console.log(plantilla);
+   
         res.status(200).json(plantilla);
     } catch (error) {
         console.error(error);
@@ -119,6 +119,7 @@ export async function editPlantillaPosts(req: Request, res: Response): Promise<v
         // Obtener la plantilla existente para acceder a la imagen actual
         const existingPlantilla = await plantillaService.getById(template_id);
         if (!existingPlantilla) {
+            
             res.status(404).json({ error: 'Plantilla no encontrada.' });
             return;
         }
@@ -129,7 +130,7 @@ export async function editPlantillaPosts(req: Request, res: Response): Promise<v
             const publicImageId = getPublicIdFromUrl(existingPlantilla.picture);
 
             // Eliminar la imagen existente
-           console.log(publicImageId);
+          
             await deleteImageFromCloudinary(publicImageId);
 
             // Subir la nueva imagen

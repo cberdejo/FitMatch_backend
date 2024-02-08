@@ -29,7 +29,7 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
         res.status(400).json({ error: 'El template_id es obligatorio.' });
         return;
     }
-    const template = await plantillaService.getPlantillaById(template_id);
+    const template = await plantillaService.getById(template_id);
     const user = await getUsuarioByIdService(user_id);
 
     if (!template || !user) {
@@ -84,7 +84,7 @@ export async function validateCreateRutinaArchivada(req: Request, res: Response,
         res.status(400).json({ error: 'El template_id es obligatorio.' });
         return;
     }
-    const template = await plantillaService.getPlantillaById(template_id);
+    const template = await plantillaService.getById(template_id);
     const user = await getUsuarioByIdService(user_id);
 
     if (!template || !user) {

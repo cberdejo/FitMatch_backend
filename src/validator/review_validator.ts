@@ -94,7 +94,7 @@ export async function validateAddReview  (req: Request, res: Response, next: Nex
       }
 
    
-      const plantilla = await plantillaService.getPlantillaById(templateId);
+      const plantilla = await plantillaService.getById(templateId);
       
 
       if ( !plantilla) {

@@ -3,4 +3,5 @@ export interface Etiqueta_In {
   experience?: string;
   interests?: string;
   equipment?: string;
+  duration?: string;
 }

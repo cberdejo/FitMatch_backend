@@ -27,10 +27,12 @@ import {esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 export async function validateGetPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+        
         const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
+     
         if (userId != null && !esNumeroValido(userId) ){
             res.status(400).json({ error: 'El usuario proporcionado no es válido.' });
             return;
@@ -93,11 +95,11 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
     }
 
     const isValidEtiqueta = (etiqueta: Etiqueta_In) => {
-        return etiqueta.objectives || etiqueta.experience || etiqueta.interests || etiqueta.equipment;
+        return etiqueta.objectives || etiqueta.experience || etiqueta.interests || etiqueta.equipment || etiqueta.duration;
     };
 
     if (!etiquetas.every(isValidEtiqueta)) {
-        res.status(400).json({ error: 'Cada etiqueta debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses, equipo.' });
+        res.status(400).json({ error: 'Cada etiqueta debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses, equipo, o duracion.' });
         return;
     }
     
@@ -116,7 +118,7 @@ export async function validateEditPlantillaPost(req: Request, res: Response, nex
     const template_id = parseInt(req.params.template_id);
 
     try {
-        const plantilla = await plantillaService.getPlantillaById(template_id);
+        const plantilla = await plantillaService.getById(template_id);
 
         if (!plantilla) {
             res.status(404).json({ error: 'Plantilla no encontrada.' });

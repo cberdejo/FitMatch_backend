@@ -58,18 +58,22 @@ export async function validateCreateSesionEntrenamiento(req: Request, res: Respo
  * @return {Promise<void>} - Resolves with void.
  */
 export async function validateEditSesionEntrenamiento(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { template_id } = req.body; // Replace 'other_fields' with actual field names
+    const { template_id, session_id, session_name } = req.body;
 
-    if (!template_id) {
-        res.status(400).json({ error: 'El template_id es obligatorio.' });
-        return;
-    }
     if (!esNumeroValido(template_id)) {
-        res.status(400).json({ error: 'El template_id debe ser un número.' });
-        return;
+         res.status(400).json({ error: 'El template_id debe ser un número.' });
+         return;
     }
 
-   
+    if (!esNumeroValido(session_id)) { 
+         res.status(400).json({ error: 'El session_id debe ser un número.' });
+         return;
+    }
 
-    next();
+    if (!session_name) {
+         res.status(400).json({ error: 'El nombre de la sesión es obligatorio.' });
+         return;
+    }
+
+    next(); 
 }

@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { getAllExercises, getAllMaterials, getAllMuscleGroups, getAllTypesRegisters, getExercisesByMaterial, getExercisesByMuscleGroup, getMaterialsById, getMuscleGroupsById } from '../controller/exercise_controller';
+import { getAllExercises, getAllMaterials, getAllMuscleGroups, getAllTypesRegisters, getExercisesByMaterial, getExercisesByMuscleGroup, getGroupedDetailedExercises, getMaterialsById, getMuscleGroupsById } from '../controller/exercise_controller';
 import { paramIdValidation } from '../validator/shared_validator';
 import { validateCreateExercisesByMuscleGroup, validateGetExercises } from '../validator/exercise_validator';
 
@@ -21,7 +21,7 @@ router.get ('/ejercicios/grupoMuscular/:muscle_group',  getExercisesByMuscleGrou
 router.get('/ejercicios/material/:material', getExercisesByMaterial);
 
 router.post('/ejercicios',validateCreateExercisesByMuscleGroup, getExercisesByMuscleGroup );
-router.get('/superset', );
+router.get('/gropuedDetailedExercises/:session_id', getGroupedDetailedExercises  );
 
 
 export default router;

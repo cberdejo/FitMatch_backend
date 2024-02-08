@@ -1,4 +1,5 @@
 
+import { ejercicios_detallados_agrupados } from "@prisma/client";
 import db  from "../config/database";
 
 export const exerciseService = {
@@ -104,9 +105,35 @@ export const exerciseService = {
           return exercises;
         } catch (error) {
           console.error('Error al obtener ejercicios filtrados:', error);
-          throw error; // Re-lanza el error para que sea manejado por el controlador de Express.js
+          throw error;
+        }finally {
+            await db.$disconnect();
         }
+  
       },
+
+      async getGropuedDetailedExercises(session_id: number): Promise<ejercicios_detallados_agrupados []| null> {
+
+          try {
+            return await db.ejercicios_detallados_agrupados.findMany({
+                where: {
+                session_id: session_id
+                }, include: {
+                    ejercicios_detallados: {
+                        include: {
+                            tipo_de_registro: true,
+                            ejercicios: true
+                        }, 
+                    }
+                }
+            });
+          } catch (error) {
+            console.error(error);
+            throw error;
+          } finally {
+            await db.$disconnect();
+          }
+      }
     
       
     }

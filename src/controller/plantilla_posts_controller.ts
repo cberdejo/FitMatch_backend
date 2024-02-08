@@ -4,6 +4,7 @@ import { plantillaService } from '../service/plantilla_posts_service';
 import { rutinaGuardadaService } from '../service/rutinas_guardadas_service';
 import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
 import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 
@@ -16,6 +17,8 @@ import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
  */
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
+
+        
         const userId: number | null = req.query.userId ? parseInt(req.query.userId as string) : null;
         const isPublic: boolean = req.query.isPublic !== 'false';
         const isHidden: boolean = req.query.isHidden === 'true';
@@ -24,12 +27,13 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = await plantillaService.getPlantillaPosts(userId, isPublic, isHidden, page, pageSize);
+        const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = await plantillaService.getPlantillaPosts( userId, isPublic, isHidden, page, pageSize);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).send();
             return;
         }
+      
         res.status(200).json(plantillaPosts);
     } catch (error) {
         console.error(error);
@@ -37,6 +41,29 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
     }
 }
 
+export async function getPlantillaPostById(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+
+        if (!esNumeroValido(template_id)) {
+            res.status(400).json({ error: 'El identificador de la plantilla no es válido.' });
+            return;
+        }
+
+        const plantilla: PlantillaDeEntrenamientoConPromedio | null = await plantillaService.getById(template_id);
+      
+        if (!plantilla) {
+            res.status(404).json({ error: 'Plantilla no encontrada.' });
+            return;
+        }
+        console.log(plantilla);
+        res.status(200).json(plantilla);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+
+    }
+}
 
 /**
  * Creates a new plantilla post.
@@ -90,7 +117,7 @@ export async function editPlantillaPosts(req: Request, res: Response): Promise<v
         const picture = req.file;
 
         // Obtener la plantilla existente para acceder a la imagen actual
-        const existingPlantilla = await plantillaService.getPlantillaById(template_id);
+        const existingPlantilla = await plantillaService.getById(template_id);
         if (!existingPlantilla) {
             res.status(404).json({ error: 'Plantilla no encontrada.' });
             return;

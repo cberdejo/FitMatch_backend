@@ -14,10 +14,11 @@ export const plantillaService = {
     * @param {number} pageSize - The number of items per page.
     * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
     */
-    async getPlantillaPosts(userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
+    async getPlantillaPosts( userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
       try {
           const offset = (page - 1) * pageSize;
           const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
+
         
           const plantillaPosts = await db.plantillas_de_entrenamiento.findMany({
               where: whereClause,
@@ -43,9 +44,12 @@ export const plantillaService = {
       } catch (error) {
           console.error(error);
           throw error;
+      } finally {
+          db.$disconnect();
       }
   },
-  
+
+
 
 
 /**
@@ -54,18 +58,35 @@ export const plantillaService = {
  * @param {number} template_id - The ID of the template to retrieve.
  * @return {Promise} A promise that resolves to the retrieved plantilla.
  */
-async  getPlantillaById(template_id:number) : Promise<plantillas_de_entrenamiento | null> {
-    try{
-        return db.plantillas_de_entrenamiento.findUnique({
-            where: {
-                template_id:template_id,
+async getById(id: number): Promise<PlantillaDeEntrenamientoConPromedio | null> {
+  try {
+    const plantilla = await db.plantillas_de_entrenamiento.findUnique({
+      where: {
+        template_id: id,
+      },
+      include: {
+        etiquetas: true,
+        usuario: {
+            select: {
+                username: true,
             }
-        })
+        }
     }
-    catch(error){
-        console.error(error);
-        throw error;
+    });
+
+    if (!plantilla) {
+      return null;
     }
+
+    const plantillasConPromedio = await getAggregatedReviewsForTemplates([plantilla]);
+
+    return plantillasConPromedio.length > 0 ? plantillasConPromedio[0] : null;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  } finally {
+    db.$disconnect();
+  }
 },
 
 async  postPlantilla(plantilla: {

@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { sesionEntrenamientoService } from '../service/sesion_entrenamiento_service';
 
+
 /**
  * Creates a session of training.
  *
@@ -51,19 +52,22 @@ export async function deleteSesionEntrenamiento(req: Request, res: Response) {
 }
 
 
-/**
- * Edit a session of training.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} Promise that resolves when the session is edited.
- */
+
+
+
 export async function editSesionEntrenamiento(req: Request, res: Response): Promise<void> {
     try {
-        const session_id = parseInt(req.params.session_id);
-        const sessionData = req.body; 
+        const { session_id, session_name, notes, order, template_id, session_date} = req.body;
+        
+        const updatedSession = await sesionEntrenamientoService.updateSession(session_id,template_id, {
+            session_name, 
+            notes, 
+            order, 
+      
+            session_date: new Date(session_date),
+         
+        });
 
-        const updatedSession = await sesionEntrenamientoService.update(session_id, sessionData);
         res.json(updatedSession);
     } catch (error) {
         console.error(error);
@@ -75,6 +79,17 @@ export async function getSesionsEntrenamientoByTemplateId(req: Request, res: Res
     try {
         const template_id = parseInt(req.params.template_id);
         const session = await sesionEntrenamientoService.getByTemplateId(template_id);
+        res.status(200).json(session);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener la sesión de entrenamiento.' });
+    }
+}
+
+export async function getSesionsEntrenamientoBySessionId(req: Request, res: Response): Promise<void> {
+    try {
+        const session_id = parseInt(req.params.session_id);
+        const session = await sesionEntrenamientoService.getById(session_id);
         res.status(200).json(session);
     } catch (error) {
         console.error(error);

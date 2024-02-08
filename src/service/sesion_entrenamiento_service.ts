@@ -1,4 +1,4 @@
-import { sesion_de_entrenamiento } from "@prisma/client";
+import {  sesion_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 
 
@@ -64,12 +64,30 @@ export const sesionEntrenamientoService = {
      * @param {Partial<sesion_de_entrenamiento>} sessionData - The partial session data to update.
      * @return {Promise<sesion_de_entrenamiento>} - The updated session.
      */
-    async update(session_id: number, sessionData: Partial<sesion_de_entrenamiento>): Promise<sesion_de_entrenamiento> {
-        return db.sesion_de_entrenamiento.update({
-            where: { session_id },
-            data: sessionData,
-        });
-    },
+  // Asumiendo db como instancia de PrismaClient
+async  updateSession(session_id: number,  template_id: number, sessionUpdateData: {
+    session_name?: string,
+    notes?: string,
+    order?: number,
+   
+    session_date?: Date,
+  
+  
+}): Promise<sesion_de_entrenamiento> {
+    const updatedSession = await db.sesion_de_entrenamiento.update({
+        where: { session_id: session_id , template_id: template_id},
+        data: {
+            ...sessionUpdateData,
+           
+        },
+        include: {
+            ejercicios_detallados_agrupados: true,
+        },
+    });
+
+    return updatedSession;
+},
+
 
    /**
     * Retrieves a training session by its ID.
@@ -81,6 +99,17 @@ export const sesionEntrenamientoService = {
 
     return db.sesion_de_entrenamiento.findUnique({
         where: { session_id },
+        include: {
+            ejercicios_detallados_agrupados: {
+                include: {
+                    ejercicios_detallados: {
+                        include: {
+                            sets_ejercicios_entrada: true
+                        }
+                    }
+                }
+            }
+        }
     });
    },
 

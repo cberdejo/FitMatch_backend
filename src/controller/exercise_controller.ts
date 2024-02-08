@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { exerciseService, materialService, muscleGroupService, typeRegisterService } from '../service/exercise_service';
 import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
+import { ejercicios_detallados_agrupados } from '@prisma/client';
 
 export async function getAllExercises(req: Request, res: Response): Promise<void> {
     try {
@@ -140,3 +141,26 @@ export async function createExercise(req: Request, res: Response): Promise<void>
         res.status(500).json({ error: 'Error al crear el ejercicio' });
     }
 }
+
+export async function getGroupedDetailedExercises(req: Request, res: Response): Promise<void> {
+    try {
+        const id = parseInt(req.params.session_id);
+        if (!esNumeroValido(id)) {
+            res.status(400).json({ error: 'El ID debe ser un número' });
+            return;
+        }
+
+        const groupedDetailedExercises: ejercicios_detallados_agrupados [] | null= await exerciseService.getGropuedDetailedExercises(id);
+        if (!groupedDetailedExercises) {
+            res.status(404).json({ error: 'No se encontraron ejercicios detallados agrupados para la sesión' });
+            return;
+        }
+        res.status(200).json(groupedDetailedExercises);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener los ejercicios detallados agrupados' });
+    }
+    
+}
+
+

@@ -133,7 +133,7 @@ model plantillas_de_entrenamiento {
   description             String?                   @db.Text
   public                  Boolean                   @default(false) @db.Bit(1)
   hidden                  Boolean                   @default(false) @db.Bit(1)
-  fecha_creacion          DateTime?                 @db.Date
+  fecha_creacion          DateTime                  @default(dbgenerated("(now())")) @db.Date
   etiquetas               etiquetas[]
   usuario                 usuario                   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_plantillas_de_entrenamiento_usuario")
   reviews                 reviews[]

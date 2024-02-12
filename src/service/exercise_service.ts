@@ -117,8 +117,8 @@ export const exerciseService = {
       
     }
 
-export const groupedDetailedExercisesService = {
-    async getBySessionId(session_id: number): Promise<ejercicios_detallados_agrupados []| null> {
+    export const groupedDetailedExercisesService = {
+        async getBySessionId(session_id: number): Promise<ejercicios_detallados_agrupados []| null> {
 
         try {
             return await db.ejercicios_detallados_agrupados.findMany({
@@ -198,6 +198,11 @@ export const groupedDetailedExercisesService = {
         });
     
         return updatedGroupedDetailedExercise;
+    }, 
+    async delete(groupedDetailedExerciseId: number): Promise<ejercicios_detallados_agrupados> {
+        return await db.ejercicios_detallados_agrupados.delete({
+            where: { grouped_detailed_exercised_id: groupedDetailedExerciseId },
+        })
     }
 }
 
@@ -230,5 +235,49 @@ export const typeRegisterService = {
     async getAll() {
         return await db.tipo_de_registro.findMany({   
         })
+    }
+}
+
+export const detailedExercisesService = {
+    async delete(id: number): Promise<{remainingSize:number, groupedDetailedExerciseId: number} | null> {
+       const groupedDetailedExercise = await db.ejercicios_detallados_agrupados.findFirst({
+           where: {
+            ejercicios_detallados:{
+                some: {detailed_exercise_id: id}
+            }
+           }, include: {
+               ejercicios_detallados: true
+           }
+        })
+
+        if (groupedDetailedExercise) {
+            // Elimina el ejercicio detallado primero
+            await db.ejercicios_detallados.delete({
+                where: { detailed_exercise_id: id }
+            });
+        
+            // verificar y actualizar el orden solo si aún hay ejercicios en el grupo
+            if (groupedDetailedExercise.ejercicios_detallados.length > 1) {
+                // Filtrar el ejercicio eliminado y actualizar el orden de los restantes
+                const remainingExercises = groupedDetailedExercise.ejercicios_detallados.filter(e => e.detailed_exercise_id !== id);
+                
+                // Ordenar los ejercicios restantes basado en su orden actual para asegurarse de que están en la secuencia correcta
+                remainingExercises.sort((a, b) => a.order - b.order);
+        
+                // Actualizar el orden para llenar cualquier hueco dejado por el ejercicio eliminado
+                for (let i = 0; i < remainingExercises.length; i++) {
+                    await db.ejercicios_detallados.update({
+                        where: { detailed_exercise_id: remainingExercises[i].detailed_exercise_id },
+                        data: { order: i + 1 } 
+                    });
+                }
+            }
+        
+            return {
+              remainingSize: groupedDetailedExercise.ejercicios_detallados.length - 1, 
+              groupedDetailedExerciseId: groupedDetailedExercise.grouped_detailed_exercised_id
+            }
+        }
+         return null;
     }
 }

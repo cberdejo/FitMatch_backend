@@ -84,7 +84,7 @@ export const sesionEntrenamientoService = {
         session_name?: string,
         session_date?: Date,
         notes?: string,
-        order?: number,
+        order: number,
         ejercicios_detallados_agrupados?: Array<{ // Hacer esta propiedad opcional
             order: number,
             ejercicios_detallados: Array<{

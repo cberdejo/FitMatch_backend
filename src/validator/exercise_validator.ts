@@ -22,7 +22,7 @@ export async function validateGetExercises(req: Request, res: Response, next: Ne
 
 }
 
-export async function validateCreateExercisesByMuscleGroup(req: Request, res: Response, next: NextFunction) {
+export async function validateCreateExercises(req: Request, res: Response, next: NextFunction) {
     const userId = req.body;
     const name = req.body;
 

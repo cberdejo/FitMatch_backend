@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { detailedExercisesService, exerciseService, groupedDetailedExercisesService, materialService, muscleGroupService, typeRegisterService } from '../service/exercise_service';
+import {  exerciseService, groupedDetailedExercisesService, materialService, muscleGroupService, typeRegisterService } from '../service/exercise_service';
 import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 import {  ejercicios_detallados_agrupados } from '@prisma/client';
 
@@ -178,30 +178,5 @@ export async function createGroupedDetailedExercises(req: Request, res: Response
     }
 }
 
-export async function deleteDetailedExercises(req: Request, res: Response): Promise<void> {
-    try {
-        const id_ejercicio_detallado = parseInt(req.params.id_ejercicio_detallado);
-  
-        if (!esNumeroValido(id_ejercicio_detallado)) {
-            res.status(400).json({ error: 'El ID debe ser un número' });
-            return;
-        }
-        
-       const info: {remainingSize:number, groupedDetailedExerciseId: number} | null = await detailedExercisesService.delete(id_ejercicio_detallado);
-       if (info === null) {
-           res.status(404).json({ error: 'No se encontro el ejercicio detallado' });
-           console.log("No se encontro el ejercicio detallado");
-           return;
-       }
-       if (info.remainingSize === 0) {
-           await groupedDetailedExercisesService.delete(info.groupedDetailedExerciseId);
-       }
-
-        
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al borrar ejercicios detallados agrupados' });
-    }
-}
 
 

@@ -1,5 +1,6 @@
 import {  sesion_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
+import { UpdateSessionData } from "../interfaces/update_sesion";
 
 
 
@@ -59,46 +60,12 @@ export const sesionEntrenamientoService = {
 
 
     
-// async  updateSession(session_id: number,  template_id: number, sessionUpdateData: {
-//     session_name?: string,
-//     notes?: string,
-//     order?: number,
-//     session_date?: Date,
-  
-  
-// }): Promise<sesion_de_entrenamiento> {
-//     const updatedSession = await db.sesion_de_entrenamiento.update({
-//         where: { session_id: session_id , template_id: template_id},
-//         data: {
-//             ...sessionUpdateData,
-           
-//         },
-//         include: {
-//             ejercicios_detallados_agrupados: true,
-//         },
-//     });
 
-//     return updatedSession;
-// },
-    async update(sessionId: number, sessionData: {
-        session_name?: string,
-        session_date?: Date,
-        notes?: string,
-        order: number,
-        ejercicios_detallados_agrupados?: Array<{ // Hacer esta propiedad opcional
-            order: number,
-            ejercicios_detallados: Array<{
-                exercise_id: number,
-                order: number,
-                register_type_id: number,
-                notes?: string
-            }>
-        }>
-    }): Promise<sesion_de_entrenamiento | null> {
+    async update(sessionId: number, sessionData: UpdateSessionData): Promise<sesion_de_entrenamiento | null> {
         try {
             const transaction = await db.$transaction(async (prisma) => {
                 // Actualiza primero la sesión de entrenamiento con los datos básicos proporcionados
-                await prisma.sesion_de_entrenamiento.update({
+                const currentSession= await prisma.sesion_de_entrenamiento.update({
                     where: { session_id: sessionId },
                     data: {
                         session_name: sessionData.session_name,
@@ -106,18 +73,29 @@ export const sesionEntrenamientoService = {
                         notes: sessionData.notes,
                         order: sessionData.order
                     },
+                    include: {
+                        ejercicios_detallados_agrupados: {
+                            include: {
+                                ejercicios_detallados:{
+                                    include: {
+                                        ejercicios: true
+                                    }
+                                },
+                            }
+                        }
+                    }
                 });
 
-                // Verificar si ejercicios_detallados_agrupados fue proporcionado antes de intentar eliminar y reinsertar
-                if (sessionData.ejercicios_detallados_agrupados) {
+                const needsUpdate = checkIfUpdateIsNeeded(currentSession, sessionData);
+                if ( needsUpdate) {
                     // Eliminar todos los grupos de ejercicios detallados existentes para esta sesión
                     await prisma.ejercicios_detallados_agrupados.deleteMany({
                         where: { session_id: sessionId },
                     });
 
-                    // Reinserta los grupos de ejercicios detallados y sus ejercicios detallados
-                    for (const grupo of sessionData.ejercicios_detallados_agrupados) {
-                        await prisma.ejercicios_detallados_agrupados.create({
+                    // Reinsertar los grupos de ejercicios detallados y sus ejercicios detallados
+                    for (const grupo of sessionData.ejercicios_detallados_agrupados!) {
+                      await prisma.ejercicios_detallados_agrupados.create({
                             data: {
                                 session_id: sessionId,
                                 order: grupo.order,
@@ -127,14 +105,28 @@ export const sesionEntrenamientoService = {
                                         order: ejercicio.order,
                                         register_type_id: ejercicio.register_type_id,
                                         notes: ejercicio.notes,
+                                        sets_ejercicios_entrada: {
+                                            create: ejercicio.sets_ejercicios_entrada.map(set => ({
+                                                set_order: set.set_order,
+                                                reps: set.reps,
+                                                time: set.time,
+                                                weight: set.weight,
+                                            }))
+                                        }
                                     })),
+                                    
+                                    
                                 },
                             },
                         });
+
+                    
+                        
                     }
+                    
                 }
 
-                // Retorna la sesión de entrenamiento actualizada con los nuevos grupos de ejercicios detallados (si se proporcionaron)
+                // Retornar la sesión de entrenamiento actualizada con los nuevos grupos de ejercicios detallados (si se proporcionaron)
                 return prisma.sesion_de_entrenamiento.findUnique({
                     where: { session_id: sessionId },
                     include: {
@@ -172,7 +164,9 @@ export const sesionEntrenamientoService = {
             ejercicios_detallados_agrupados: {
                 include: {
                     ejercicios_detallados: {
+                       
                         include: {
+                            ejercicios: true,
                             sets_ejercicios_entrada: true
                         }
                     }
@@ -200,3 +194,64 @@ export const sesionEntrenamientoService = {
        })
    }
 };
+
+function checkIfUpdateIsNeeded(currentSession: any, sessionData:UpdateSessionData) {
+
+    //Comprobar si la nueva sesión de entrenamiento tiene ejercicios detallados agrupados
+    if (!sessionData.ejercicios_detallados_agrupados) {
+        return false;
+    }
+
+    // Comprobar si la cantidad de ejercicios detallados agrupados coincide
+    if (currentSession.ejercicios_detallados_agrupados.length !== sessionData.ejercicios_detallados_agrupados?.length) {
+        return true;
+    }
+    
+    // Comprobar cada grupo de ejercicios detallados agrupados por coincidencia
+    for (let i = 0; i < currentSession.ejercicios_detallados_agrupados.length; i++) {
+        const currentGroup = currentSession.ejercicios_detallados_agrupados[i];
+        const updateGroup = sessionData.ejercicios_detallados_agrupados[i];
+
+        // Comprobar si los campos del grupo coinciden
+        if (currentGroup.order !== updateGroup.order ||
+            currentGroup.ejercicios_detallados.length !== updateGroup.ejercicios_detallados.length) {
+            return true;
+        }
+
+        // Comprobar cada ejercicio detallado dentro del grupo
+        for (let j = 0; j < currentGroup.ejercicios_detallados.length; j++) {
+            const currentExercise = currentGroup.ejercicios_detallados[j];
+            const updateExercise = updateGroup.ejercicios_detallados.find(e => e.exercise_id === currentExercise.exercise_id);
+
+            // Si no se encuentra un ejercicio correspondiente en los datos de actualización, o si alguno de los campos no coincide
+            if (!updateExercise ||
+                currentExercise.exercise_id !== updateExercise.exercise_id ||
+                currentExercise.register_type_id !== updateExercise.register_type_id ||
+                currentExercise.notes !== updateExercise.notes ||
+                currentExercise.order !== updateExercise.order) {
+                return true;
+            }
+
+            //Comprobar que los sets no hayan cambiado el tamaño
+            if (updateExercise.sets_ejercicios_entrada.length !== currentExercise.sets_ejercicios_entrada.length) {
+                return true;
+            }
+            //Comprobar sets
+            for (let k = 0; k < updateExercise.sets_ejercicios_entrada.length; k++) {
+                const currentSet = currentExercise.sets_ejercicios_entrada[k];
+                const updateSet = updateExercise.sets_ejercicios_entrada[k];
+                if (!updateSet || 
+                    currentSet.set_order !== updateSet.set_order || 
+                    currentSet.reps !== updateSet.reps || 
+                    currentSet.time !== updateSet.time || 
+                    currentSet.weight !== updateSet.weight) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Si llegamos aquí, significa que no se encontraron diferencias que requieran una actualización
+    return false;
+    
+}

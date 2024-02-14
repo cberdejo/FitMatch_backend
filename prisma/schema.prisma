@@ -30,6 +30,7 @@ model ejercicios {
   user_id               Int?
   name                  String?                 @db.VarChar(255)
   description           String?                 @db.Text
+  video                 String?                 @db.VarChar(50)
   grupo_muscular        grupo_muscular          @relation(fields: [muscle_group_id], references: [muscle_group_id], onDelete: Cascade, map: "FK_ejercicios_grupo_muscular")
   material              material                @relation(fields: [material_id], references: [material_id], onDelete: Cascade, map: "FK_ejercicios_material")
   usuario               usuario?                @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_ejercicios_usuario")
@@ -41,15 +42,15 @@ model ejercicios {
 }
 
 model ejercicios_detallados {
-  detailed_exercise_id            Int                              @id @default(autoincrement())
-  grouped_detailed_exercised_id   Int?
-  exercise_id                     Int?
+  detailed_exercise_id            Int                             @id @default(autoincrement())
+  grouped_detailed_exercised_id   Int
+  exercise_id                     Int
   register_type_id                Int
-  notes                           String?                          @db.Text
+  notes                           String?                         @db.Text
   order                           Int
-  ejercicios                      ejercicios?                      @relation(fields: [exercise_id], references: [exercise_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios")
-  ejercicios_detallados_agrupados ejercicios_detallados_agrupados? @relation(fields: [grouped_detailed_exercised_id], references: [grouped_detailed_exercised_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios_detallados_agrupados")
-  tipo_de_registro                tipo_de_registro                 @relation(fields: [register_type_id], references: [register_type_id], onDelete: Cascade, map: "FK_ejercicios_detallados_tipo_de_registro")
+  ejercicios                      ejercicios                      @relation(fields: [exercise_id], references: [exercise_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios")
+  ejercicios_detallados_agrupados ejercicios_detallados_agrupados @relation(fields: [grouped_detailed_exercised_id], references: [grouped_detailed_exercised_id], onDelete: Cascade, map: "FK_ejercicios_detallados_ejercicios_detallados_agrupados")
+  tipo_de_registro                tipo_de_registro                @relation(fields: [register_type_id], references: [register_type_id], onDelete: Cascade, map: "FK_ejercicios_detallados_tipo_de_registro")
   sets_ejercicios_entrada         sets_ejercicios_entrada[]
 
   @@index([exercise_id], map: "FK_ejercicios_detallados_ejercicios")
@@ -152,6 +153,7 @@ model registro_set {
   weight                  Int?
   time                    Int?
   timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
+  video                   String?                 @db.VarChar(50)
   sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_sets_ejercicios_entrada")
   usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_usuario")
 
@@ -216,7 +218,6 @@ model sets_ejercicios_entrada {
   reps                  Int?
   time                  DateTime?              @db.Date
   weight                Float?
-  video                 String?                @db.VarChar(255)
   registro_set          registro_set[]
   ejercicios_detallados ejercicios_detallados? @relation(fields: [detailed_exercise_id], references: [detailed_exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
 

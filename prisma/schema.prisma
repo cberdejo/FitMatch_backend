@@ -214,10 +214,13 @@ model sesion_de_entrenamiento {
 model sets_ejercicios_entrada {
   set_id                Int                    @id @default(autoincrement())
   detailed_exercise_id  Int?
-  set_order             Int?
+  set_order             Int
   reps                  Int?
-  time                  DateTime?              @db.Date
-  weight                Float?
+  time                  Float?
+  min_reps              Int?
+  max_reps              Int?
+  min_time              Float?
+  max_time              Float?
   registro_set          registro_set[]
   ejercicios_detallados ejercicios_detallados? @relation(fields: [detailed_exercise_id], references: [detailed_exercise_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_sets_ejercicios_entrada_ejercicios_detallados")
 

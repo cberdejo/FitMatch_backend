@@ -128,7 +128,8 @@ export const exerciseService = {
                     ejercicios_detallados: {
                         include: {
                             tipo_de_registro: true,
-                            ejercicios: true
+                            ejercicios: true,
+                            sets_ejercicios_entrada: true
                         }, 
                     }
                 }

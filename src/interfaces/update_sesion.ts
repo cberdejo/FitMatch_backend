@@ -10,11 +10,14 @@ export interface UpdateSessionData {
             order: number;
             register_type_id: number;
             notes?: string;
-            sets_ejercicios_entrada: Array<{ 
+            sets_ejercicios_entrada?: Array<{ 
                 set_order: number;
                 reps?: number;
-                time?: Date; 
-                weight?: number;
+                time?: number; 
+                min_reps?: number;
+                max_reps?: number;
+                min_time?: number;
+                max_time?: number;
             }>;
         }>;
     }>;

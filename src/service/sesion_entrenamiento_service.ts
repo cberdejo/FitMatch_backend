@@ -106,11 +106,14 @@ export const sesionEntrenamientoService = {
                                         register_type_id: ejercicio.register_type_id,
                                         notes: ejercicio.notes,
                                         sets_ejercicios_entrada: {
-                                            create: ejercicio.sets_ejercicios_entrada.map(set => ({
+                                            create: ejercicio.sets_ejercicios_entrada?.map(set => ({  
                                                 set_order: set.set_order,
                                                 reps: set.reps,
                                                 time: set.time,
-                                                weight: set.weight,
+                                                min_reps: set.min_reps,
+                                                max_reps: set.max_reps,
+                                                min_time: set.min_time,
+                                                max_time: set.max_time, 
                                             }))
                                         }
                                     })),
@@ -195,63 +198,71 @@ export const sesionEntrenamientoService = {
    }
 };
 
-function checkIfUpdateIsNeeded(currentSession: any, sessionData:UpdateSessionData) {
-
-    //Comprobar si la nueva sesión de entrenamiento tiene ejercicios detallados agrupados
-    if (!sessionData.ejercicios_detallados_agrupados) {
-        return false;
-    }
-
+function checkIfUpdateIsNeeded(currentSession: any, sessionData: UpdateSessionData): boolean {
+    // Asegurarse de que ambos, la sesión actual y los datos de la sesión a actualizar,
+    // tienen ejercicios detallados agrupados definidos y no son undefined
+    const currentGroups = currentSession.ejercicios_detallados_agrupados || [];
+    const updateGroups = sessionData.ejercicios_detallados_agrupados || [];
+  
     // Comprobar si la cantidad de ejercicios detallados agrupados coincide
-    if (currentSession.ejercicios_detallados_agrupados.length !== sessionData.ejercicios_detallados_agrupados?.length) {
-        return true;
+    if (currentGroups.length !== updateGroups.length) {
+      return true;
     }
-    
+  
     // Comprobar cada grupo de ejercicios detallados agrupados por coincidencia
-    for (let i = 0; i < currentSession.ejercicios_detallados_agrupados.length; i++) {
-        const currentGroup = currentSession.ejercicios_detallados_agrupados[i];
-        const updateGroup = sessionData.ejercicios_detallados_agrupados[i];
-
-        // Comprobar si los campos del grupo coinciden
-        if (currentGroup.order !== updateGroup.order ||
-            currentGroup.ejercicios_detallados.length !== updateGroup.ejercicios_detallados.length) {
+    for (let i = 0; i < currentGroups.length; i++) {
+      const currentGroup = currentGroups[i];
+      const updateGroup = updateGroups[i];
+  
+      // Comprobar si los campos del grupo coinciden
+      if (currentGroup.order !== updateGroup.order ||
+          currentGroup.ejercicios_detallados.length !== updateGroup.ejercicios_detallados.length) {
+        return true;
+      }
+  
+      // Comprobar cada ejercicio detallado dentro del grupo
+      for (let j = 0; j < currentGroup.ejercicios_detallados.length; j++) {
+        const currentExercise = currentGroup.ejercicios_detallados[j];
+        const updateExercise = updateGroup.ejercicios_detallados.find(e => e.exercise_id === currentExercise.exercise_id);
+  
+        // Si no se encuentra un ejercicio correspondiente en los datos de actualización, o si alguno de los campos no coincide
+        if (!updateExercise ||
+            currentExercise.exercise_id !== updateExercise.exercise_id ||
+            currentExercise.register_type_id !== updateExercise.register_type_id ||
+            currentExercise.notes !== updateExercise.notes ||
+            currentExercise.order !== updateExercise.order) {
+          return true;
+        }
+  
+        // Comprobar los sets de ejercicios
+        const currentSets = currentExercise.sets_ejercicios_entrada ?? [];
+        const updateSets = updateExercise.sets_ejercicios_entrada ?? [];
+        
+        if (currentSets.length !== updateSets.length) {
+          return true;
+        }
+  
+        // Comprobar cada set de ejercicios dentro del ejercicio
+        for (let k = 0; k < currentSets.length; k++) {
+          const currentSet = currentSets[k];
+          const updateSet = updateSets[k];
+  
+          // Comprobar si los campos del set coinciden
+          if (currentSet.set_order !== updateSet.set_order || 
+              currentSet.reps !== updateSet.reps || 
+              currentSet.time !== updateSet.time || 
+              currentSet.min_reps !== updateSet.min_reps || 
+              currentSet.max_reps !== updateSet.max_reps || 
+              currentSet.min_time !== updateSet.min_time || 
+              currentSet.max_time !== updateSet.max_time) {
             return true;
+          }
         }
-
-        // Comprobar cada ejercicio detallado dentro del grupo
-        for (let j = 0; j < currentGroup.ejercicios_detallados.length; j++) {
-            const currentExercise = currentGroup.ejercicios_detallados[j];
-            const updateExercise = updateGroup.ejercicios_detallados.find(e => e.exercise_id === currentExercise.exercise_id);
-
-            // Si no se encuentra un ejercicio correspondiente en los datos de actualización, o si alguno de los campos no coincide
-            if (!updateExercise ||
-                currentExercise.exercise_id !== updateExercise.exercise_id ||
-                currentExercise.register_type_id !== updateExercise.register_type_id ||
-                currentExercise.notes !== updateExercise.notes ||
-                currentExercise.order !== updateExercise.order) {
-                return true;
-            }
-
-            //Comprobar que los sets no hayan cambiado el tamaño
-            if (updateExercise.sets_ejercicios_entrada.length !== currentExercise.sets_ejercicios_entrada.length) {
-                return true;
-            }
-            //Comprobar sets
-            for (let k = 0; k < updateExercise.sets_ejercicios_entrada.length; k++) {
-                const currentSet = currentExercise.sets_ejercicios_entrada[k];
-                const updateSet = updateExercise.sets_ejercicios_entrada[k];
-                if (!updateSet || 
-                    currentSet.set_order !== updateSet.set_order || 
-                    currentSet.reps !== updateSet.reps || 
-                    currentSet.time !== updateSet.time || 
-                    currentSet.weight !== updateSet.weight) {
-                    return true;
-                }
-            }
-        }
+      }
     }
-
+  
     // Si llegamos aquí, significa que no se encontraron diferencias que requieran una actualización
     return false;
-    
-}
+  }
+  
+  

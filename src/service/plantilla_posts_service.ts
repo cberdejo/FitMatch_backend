@@ -49,6 +49,75 @@ export const plantillaService = {
       }
   },
 
+  async archivarPlantilla(template_id: number, user_id:number) {
+    try {
+      const result = await db.$transaction(async (prisma) => {
+        await prisma.rutinas_guardadas.deleteMany({
+          where: {
+            template_id: template_id,
+            user_id: user_id
+          }
+        });
+        const archivada = await prisma.rutinas_archivadas.create({
+          data: {
+            template_id: template_id,
+            user_id: user_id,
+          }
+        });
+        return archivada;
+      });
+
+      return result;
+
+    } catch (error) {
+      console.error(error);
+        throw error;
+    } finally {
+      db.$disconnect();
+    }
+  },
+
+  async guardarPlantilla(template_id: number, user_id: number) {
+    try {
+      const result = await db.$transaction(async (prisma) => {
+        // Verificar si la plantilla está archivada
+        const archivada = await prisma.rutinas_archivadas.findFirst({
+          where: {
+            template_id: template_id,
+            user_id: user_id,
+          },
+        });
+  
+        // Si está archivada, eliminarla de plantillas_de_entrenamiento
+        if (archivada) {
+          await prisma.rutinas_archivadas.delete({
+            where: {
+             archived_id: archivada.archived_id,
+            },
+          });
+        }
+  
+        // Añadir la plantilla a rutinas_guardadas, ya sea que estuviera archivada o no
+        const activada = await prisma.rutinas_guardadas.create({
+          data: {
+            template_id: template_id,
+            user_id: user_id,
+          },
+        });
+  
+        return activada;
+      });
+  
+      return result;
+  
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      db.$disconnect();
+    }
+  },
+  
 
 
 
@@ -199,6 +268,83 @@ async  postPlantilla(plantilla: {
         return db.plantillas_de_entrenamiento.delete({
             where: { template_id },
         });
+    }, 
+
+    async togglePublic(template_id: number) {
+      const template = await db.plantillas_de_entrenamiento.findUnique({
+        where: { template_id },
+      });
+      if (template) {
+        const newPublicValue = template.public ? false : true;
+        return db.plantillas_de_entrenamiento.update({
+          where: { template_id },
+          data: { public: newPublicValue },
+        })
+      }
+      return null;
+    
+
+    }, 
+    async toggleHiddenCreada(template_id: number) {
+      const template = await db.plantillas_de_entrenamiento.findUnique({
+        where: { template_id },
+      });
+      if (template) {
+        const newHiddenValue = template.hidden ? false : true;
+        const publicValue = newHiddenValue ? undefined : false;
+        return db.plantillas_de_entrenamiento.update({
+          where: { template_id },
+          data: { hidden: newHiddenValue , public: publicValue},
+        })
+      }
+      /*
+        En caso de que no haya ningún registro de un set en ninguna sesión de entrenamiento, se borrará de la tabla plantillas_de_entrenamiento
+      */
+      return null;
+    }, 
+    async toggleHiddenRutinaGuardada(template_id: number, user_id:number) {
+      const rutina_guardada = await db.rutinas_guardadas.findFirst({
+        where: { template_id: template_id, user_id: user_id },
+       
+      });
+      
+      if (rutina_guardada) {
+        const newHiddenValue = rutina_guardada.hidden ? false : true;
+        
+        return db.rutinas_guardadas.update({
+          where: {saved_id: rutina_guardada.saved_id},
+          data: { hidden: newHiddenValue },
+        });
+
+        /*
+        En caso de que no haya ningún registro de set asociado a un set de en sets_ejercicios_entrada de una sesión perteneciente a una sesión de 
+        entrenamiento de la plantilla de entrenamiento de id template_id, se borrará de la tabla rutinas_guardadas
+        */
+
+      }
+      return null;
+    },
+   
+    async toggleHiddenRutinaArchivada(template_id: number, user_id:number) {
+      const rutinas_archivadas = await db.rutinas_archivadas.findFirst({
+        where: { template_id: template_id, user_id: user_id },
+       
+      });
+      
+      if (rutinas_archivadas) {
+        const newHiddenValue = rutinas_archivadas.hidden ? false : true;
+        
+        return db.rutinas_archivadas.update({
+          where: {archived_id: rutinas_archivadas.archived_id},
+          data: { hidden: newHiddenValue },
+        });
+
+        /*
+          Si no hay ningún registro de ningún set y se elimina de archivado, se deberá borrar de la tabla rutinas_archivadas
+        */
+
+      }
+      return null;
     }
 
 }

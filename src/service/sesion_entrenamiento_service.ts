@@ -183,17 +183,18 @@ export const sesionEntrenamientoService = {
        return db.sesion_de_entrenamiento.findMany({
            where: { template_id:template_id },
            orderBy: { order: 'asc' },
-        //    include: {
-        //        ejercicios_detallados_agrupados: {
-        //         include: {
-        //             ejercicios_detallados: {
-        //                 include: {
-        //                     sets_ejercicios_entrada: true
-        //                 }
-        //             }
-        //         }
-        //        }
-        //    }
+           include: {
+               ejercicios_detallados_agrupados: {
+                include: {
+                    ejercicios_detallados: {
+                        include: {
+                            sets_ejercicios_entrada: true,
+                            ejercicios: true
+                        }
+                    }
+                }
+               }
+           }
        })
    }
 };

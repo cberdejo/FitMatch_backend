@@ -116,6 +116,7 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
  */
 export async function validateEditPlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
     const template_id = parseInt(req.params.template_id);
+    const { template_name, description, etiquetas, user_id} = req.body;
 
     try {
         const plantilla = await plantillaService.getById(template_id);
@@ -125,11 +126,26 @@ export async function validateEditPlantillaPost(req: Request, res: Response, nex
             return;
         }
 
-        if (plantilla.public) {
-            res.status(403).json({ error: 'No se puede modificar una plantilla que ya es pública.' });
+        if (!template_name) {
+            res.status(400).json({ error: 'El nombre de la plantilla no puede estar vacío.' });
+            return;
+        } 
+
+        if (!description) {
+            res.status(400).json({ error: 'La descripción de la plantilla no puede estar vacía.' });
             return;
         }
+        if (!etiquetas) {
+            res.status(400).json({ error: 'Las etiquetas de la plantilla no pueden estar vacías.' });
+            return;
+        } 
+        if (!user_id) {
+            res.status(400).json({ error: 'El ID del usuario no puede estar vacío.' });
+            return;
+        }
+   
 
+    
         next();
     } catch (error) {
         console.error(error);

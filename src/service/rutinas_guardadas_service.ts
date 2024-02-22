@@ -1,3 +1,4 @@
+import { rutinas_guardadas } from "@prisma/client";
 import db  from "../config/database";
 import { PlantillaDeEntrenamientoConPromedio } from "../interfaces/posts";
 import { getAggregatedReviewsForTemplates } from "./plantilla_posts_service";
@@ -28,6 +29,50 @@ export const rutinaGuardadaService = {
             where: { saved_id },
         });
     },
+
+    
+
+  async guardarPlantilla(template_id: number, user_id: number) {
+    try {
+      const result = await db.$transaction(async (prisma) => {
+        // Verificar si la plantilla está archivada
+        const archivada = await prisma.rutinas_archivadas.findFirst({
+          where: {
+            template_id: template_id,
+            user_id: user_id,
+          },
+        });
+  
+        // Si está archivada, eliminarla de plantillas_de_entrenamiento
+        if (archivada) {
+          await prisma.rutinas_archivadas.delete({
+            where: {
+             archived_id: archivada.archived_id,
+            },
+          });
+        }
+  
+        // Añadir la plantilla a rutinas_guardadas, ya sea que estuviera archivada o no
+        const activada = await prisma.rutinas_guardadas.create({
+          data: {
+            template_id: template_id,
+            user_id: user_id,
+          },
+        });
+  
+        return activada;
+      });
+  
+      return result;
+  
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } finally {
+      db.$disconnect();
+    }
+  },
+  
 
 
    
@@ -70,7 +115,53 @@ export const rutinaGuardadaService = {
         } finally {
             await db.$disconnect();
         }
-    }
+    },
+
+  
+      async toggleHiddenRutinaGuardada(template_id: number, user_id:number) {
+        const rutina_guardada: rutinas_guardadas | null = await db.rutinas_guardadas.findFirst({
+          where: { AND: {template_id: template_id,user_id: user_id }},
+         
+        });
+        
+        if (rutina_guardada) {
+          const newHiddenValue = rutina_guardada.hidden ? false : true;
+          
+          return db.rutinas_guardadas.update({
+            where: {saved_id: rutina_guardada.saved_id},
+            data: { hidden: newHiddenValue },
+          });
+  
+          /*
+          En caso de que no haya ningún registro de set asociado a un set de en sets_ejercicios_entrada de una sesión perteneciente a una sesión de 
+          entrenamiento de la plantilla de entrenamiento de id template_id, se borrará de la tabla rutinas_guardadas
+          */
+  
+        }
+        return null;
+      },
+     
+      async toggleHiddenRutinaArchivada(template_id: number, user_id:number) {
+        const rutinas_archivadas = await db.rutinas_archivadas.findFirst({
+          where: { template_id: template_id, user_id: user_id },
+         
+        });
+        
+        if (rutinas_archivadas) {
+          const newHiddenValue = rutinas_archivadas.hidden ? false : true;
+          
+          return db.rutinas_archivadas.update({
+            where: {archived_id: rutinas_archivadas.archived_id},
+            data: { hidden: newHiddenValue },
+          });
+  
+          /*
+            Si no hay ningún registro de ningún set y se elimina de archivado, se deberá borrar de la tabla rutinas_archivadas
+          */
+  
+        }
+        return null;
+      }
     
    
 };
@@ -131,7 +222,34 @@ export const rutinaArchivadaService = {
         } finally {
             await db.$disconnect();
         }
-    }
+    },
+    async archivarPlantilla(template_id: number, user_id:number) {
+        try {
+          const result = await db.$transaction(async (prisma) => {
+            await prisma.rutinas_guardadas.deleteMany({
+              where: {
+                template_id: template_id,
+                user_id: user_id
+              }
+            });
+            const archivada = await prisma.rutinas_archivadas.create({
+              data: {
+                template_id: template_id,
+                user_id: user_id,
+              }
+            });
+            return archivada;
+          });
+    
+          return result;
+    
+        } catch (error) {
+          console.error(error);
+            throw error;
+        } finally {
+          db.$disconnect();
+        }
+      },
     
    
 };

@@ -1,25 +1,9 @@
 import { Request, Response } from 'express';
 import { rutinaArchivadaService, rutinaGuardadaService } from '../service/rutinas_guardadas_service';
 import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
-// import { PlantillaDeEntrenamientoConPromedio } from '../interfaces/posts';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
+import { plantillaService } from '../service/plantilla_posts_service';
 
-/**
- * Creates a new saved routine.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} Promise that resolves when the routine is created.
- */
-export async function createRutinaGuardada(req: Request, res: Response): Promise<void> {
-    try {
-        const { user_id, template_id } = req.body;
-        const nuevaRutina = await rutinaGuardadaService.create({ user_id, template_id });
-        res.status(201).json(nuevaRutina);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al guardar la rutina.' });
-    }
-}
 
 /**
  * Retrieves the saved routines for a specific user.
@@ -62,24 +46,96 @@ export async function deleteRutinaGuardada(req: Request, res: Response): Promise
     }
 }
 
-
-/**
- * Creates a new saved routine.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} Promise that resolves when the routine is created.
- */
-export async function createRutinaArchivada(req: Request, res: Response): Promise<void> {
+export async function archivarPlantilla(req: Request, res: Response): Promise<void> {
     try {
-        const { user_id, template_id } = req.body;
-        const rutinaArchivada = await rutinaArchivadaService.create({ user_id, template_id });
-        res.status(201).json(rutinaArchivada);
+        const {template_id, user_id} = req.body;
+        const plantilla = await rutinaArchivadaService.archivarPlantilla(template_id, user_id);
+        res.status(200).json(plantilla);
+        
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al guardar la rutina.' });
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
     }
 }
+
+export async function guardarPlantilla(req: Request, res: Response): Promise<void> {
+    try{
+        const {template_id, user_id} = req.body;
+        const plantilla = await rutinaGuardadaService.guardarPlantilla(template_id, user_id);
+        res.status(200).json(plantilla);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+
+}
+
+export async function togglePublico(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+
+
+        if (!esNumeroValido(template_id)) {
+            res.status(400).json({ error: 'El identificador de la plantilla no es válido.' });
+            return;
+        }
+        const plantilla = await plantillaService.togglePublic(template_id);
+        res.status(200).json(plantilla);
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+export async function toggleHiddenPlantilla(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+        
+        if (!esNumeroValido(template_id)) {
+            res.status(400).json({ error: 'El identificador de la plantilla no es válido.' });
+            return;
+        }
+      
+        const plantilla = await plantillaService.toggleHiddenCreada(template_id);
+        
+        res.status(200).json(plantilla);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+export async function toggleHiddenRutinaGuardada(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+        const user_id = parseInt(req.params.user_id);
+        const plantilla = await rutinaGuardadaService.toggleHiddenRutinaGuardada(template_id, user_id);
+        res.status(200).json(plantilla);
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+export async function toggleHiddenRutinaArchivada(req: Request, res: Response): Promise<void> {
+    try {
+        const template_id = parseInt(req.params.template_id);
+        const user_id = parseInt(req.params.user_id);
+        
+        const plantilla = await rutinaGuardadaService.toggleHiddenRutinaArchivada(template_id, user_id);
+        res.status(200).json(plantilla);
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrio un error al procesar la solicitud.' });
+    }
+}
+
+
+
 
 /**
  * Retrieves the saved routines for a specific user.

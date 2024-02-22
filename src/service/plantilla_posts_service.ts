@@ -1,4 +1,4 @@
-import { plantillas_de_entrenamiento } from "@prisma/client";
+import { plantillas_de_entrenamiento, rutinas_guardadas } from "@prisma/client";
 import db  from "../config/database";
 import { Etiqueta_In } from "../interfaces/etiquetas_input";
 import { PlantillaDeEntrenamientoConPromedio } from "../interfaces/posts";
@@ -303,8 +303,8 @@ async  postPlantilla(plantilla: {
       return null;
     }, 
     async toggleHiddenRutinaGuardada(template_id: number, user_id:number) {
-      const rutina_guardada = await db.rutinas_guardadas.findFirst({
-        where: { template_id: template_id, user_id: user_id },
+      const rutina_guardada: rutinas_guardadas | null = await db.rutinas_guardadas.findFirst({
+        where: { AND: {template_id: template_id,user_id: user_id }},
        
       });
       

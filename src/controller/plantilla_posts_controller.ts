@@ -199,7 +199,8 @@ export async function toggleHiddenPlantilla(req: Request, res: Response): Promis
 
 export async function toggleHiddenRutinaGuardada(req: Request, res: Response): Promise<void> {
     try {
-        const {template_id, user_id} = req.body;
+        const template_id = parseInt(req.params.template_id);
+        const user_id = parseInt(req.params.user_id);
         const plantilla = await plantillaService.toggleHiddenRutinaGuardada(template_id, user_id);
         res.status(200).json(plantilla);
         
@@ -211,7 +212,9 @@ export async function toggleHiddenRutinaGuardada(req: Request, res: Response): P
 
 export async function toggleHiddenRutinaArchivada(req: Request, res: Response): Promise<void> {
     try {
-        const {template_id, user_id} = req.body;
+        const template_id = parseInt(req.params.template_id);
+        const user_id = parseInt(req.params.user_id);
+        
         const plantilla = await plantillaService.toggleHiddenRutinaArchivada(template_id, user_id);
         res.status(200).json(plantilla);
         

@@ -9,7 +9,8 @@ import {
     decodeToken,
      } from '../controller/usuario_controller';
 import { upload } from '../config/cloudinary';
-import { validateCreateUsuario, validateGetUsuarioByEmail, validateGetUsuarioById, validateVerifyUsuarios } from '../validator/usuario_validators';
+import { validateCreateUsuario, validateGetUsuarioByEmail,  validateVerifyUsuarios } from '../validator/usuario_validators';
+import { paramIdValidation } from '../validator/shared_validator';
 
 const usuarioRouter: Router = express.Router();
 
@@ -18,7 +19,7 @@ usuarioRouter.post('/usuarios', upload.single('profile_picture'), validateCreate
 usuarioRouter.put('/usuarios', editUsuario);
 
 
-usuarioRouter.get('/usuarios/id/:id', validateGetUsuarioById, getUsuarioById);
+usuarioRouter.get('/usuarios/id/:id', paramIdValidation, getUsuarioById);
 usuarioRouter.get('/usuarios/email/:email', validateGetUsuarioByEmail,  getUsuarioByEmail);
 
 usuarioRouter.post('/verificar', validateVerifyUsuarios, verifyUsuarios);

@@ -148,18 +148,18 @@ model plantillas_de_entrenamiento {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model registro_set {
   register_set_id         Int                     @id @default(autoincrement())
+  register_session_id     Int?
   set_id                  Int
-  user_id                 Int
   reps                    Int?
   weight                  Int?
   time                    Int?
   timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
   video                   String?                 @db.VarChar(50)
+  registro_de_sesion      registro_de_sesion?     @relation(fields: [register_session_id], references: [register_session_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_registro_de_sesion")
   sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_sets_ejercicios_entrada")
-  usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_usuario")
 
   @@index([set_id], map: "FK_registro_set_sets_ejercicios_entrada")
-  @@index([user_id], map: "FK_registro_set_usuario")
+  @@index([register_session_id], map: "FK_registro_set_registro_de_sesion")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -197,7 +197,7 @@ model rutinas_guardadas {
   user_id                     Int
   template_id                 Int
   hidden                      Boolean                     @default(false) @db.Bit(1)
-  plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_rutinas_guardadas_plantillas_de_entrenamiento")
+  plantillas_de_entrenamiento plantillas_de_entrenamiento @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "FK_rutinas_guardadas_plantillas_de_entrenamiento")
   usuario                     usuario                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_rutinas_guardadas_usuario")
 
   @@unique([template_id, user_id], map: "template_id")
@@ -213,6 +213,7 @@ model sesion_de_entrenamiento {
   notes                           String?                           @db.Text
   order                           Int                               @default(0)
   ejercicios_detallados_agrupados ejercicios_detallados_agrupados[]
+  registro_de_sesion              registro_de_sesion[]
   plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
 
   @@index([template_id], map: "template_id")
@@ -256,11 +257,24 @@ model usuario {
   me_gusta_comentarios        me_gusta_comentarios[]
   me_gusta_reviews            me_gusta_reviews[]
   plantillas_de_entrenamiento plantillas_de_entrenamiento[]
-  registro_set                registro_set[]
+  registro_de_sesion          registro_de_sesion[]
   reviews                     reviews[]
   rutinas_archivadas          rutinas_archivadas[]
   rutinas_guardadas           rutinas_guardadas[]
   perfil                      perfil                        @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade, map: "FK_usuario_perfil")
 
   @@index([profile_id], map: "FK_usuario_perfil")
+}
+
+model registro_de_sesion {
+  register_session_id     Int                     @id @default(autoincrement())
+  user_id                 Int
+  session_id              Int
+  date                    DateTime                @default(dbgenerated("(now())")) @db.DateTime(0)
+  sesion_de_entrenamiento sesion_de_entrenamiento @relation(fields: [session_id], references: [session_id], onDelete: Cascade, map: "FK_registro_de_sesion_sesion_de_entrenamiento")
+  usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_registro_sesion_usuario")
+  registro_set            registro_set[]
+
+  @@index([session_id], map: "FK_registro_de_sesion_sesion_de_entrenamiento")
+  @@index([user_id], map: "FK_registro_sesion_usuario")
 }

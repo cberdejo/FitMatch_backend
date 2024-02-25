@@ -5,6 +5,7 @@ import { createSesionEntrenamiento, deleteSesionEntrenamiento, editSesionEntrena
 
 const router: Router = express.Router();
 
+//hacer validadores
 router.post('/sesionEntrenamiento/', validateCreateSesionEntrenamiento, createSesionEntrenamiento);
 router.delete('/sesionEntrenamiento/:session_id', deleteSesionEntrenamiento);
 router.put('/sesionEntrenamiento/:sessionId', editSesionEntrenamiento);

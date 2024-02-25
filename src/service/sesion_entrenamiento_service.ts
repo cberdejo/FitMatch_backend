@@ -5,35 +5,7 @@ import { UpdateSessionData } from "../interfaces/update_sesion";
 
 
 export const sesionEntrenamientoService = {
-    /**
-     * Creates a new session of training using the specified template ID.
-     *
-     * @param {number} template_id - The ID of the template to use for the session.
-     * @return {Promise} A promise that resolves to the created session.
-     */
-    // async create(template_id: number, ejercicios: any[], session_name: string, notes: string) {
-    //     return db.$transaction(async (prisma) => {
-    //         const sesion = await prisma.sesion_de_entrenamiento.create({
-    //             data: { 
-    //                 template_id: template_id,
-    //                 session_name: session_name,
-    //                 notes: notes
-    //              }
-    //         });
     
-    //         for (const ejercicio of ejercicios) {
-    //             await prisma.ejercicios_detallados.create({
-    //                 data: {
-    //                     ...ejercicio,
-    //                     session_id: sesion.session_id,
-    //                 }
-    //             });
-    //         }
-    
-    //         return sesion;
-    //     });
-    // },
-
     async create(template_id: number, session_name: string, notes: string, order: number) {
         return db.sesion_de_entrenamiento.create({
             data: {
@@ -46,21 +18,40 @@ export const sesionEntrenamientoService = {
         
     },
 
-    /**
-     * Deletes a session by session ID.
-     *
-     * @param {any} session_id - the ID of the session to be deleted
-     * @return {Promise<any>} - a promise that resolves to the result of the deletion
-     */
+
     async delete(session_id:any) {
         return await db.sesion_de_entrenamiento.delete({
             where: { session_id: parseInt(session_id) },
         });
     },
 
+    async isSetIdInTrainingSession( session_id: number, set_id: number): Promise<boolean> {
+        console.log(session_id, set_id);
+        const count = await db.sesion_de_entrenamiento.count({
+            where: {
+                session_id: session_id,
+                ejercicios_detallados_agrupados: {
+                    some: {
+                        ejercicios_detallados: {
+                            some: {
+                                sets_ejercicios_entrada: {
+                                    some: {
+                                        set_id: set_id
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log(count);
+        return count > 0;
+    },
+
 
     
-
     async update(sessionId: number, sessionData: UpdateSessionData): Promise<sesion_de_entrenamiento | null> {
         try {
             const transaction = await db.$transaction(async (prisma) => {

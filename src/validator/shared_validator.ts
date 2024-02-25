@@ -5,10 +5,11 @@ export async function paramIdValidation(req: Request, res: Response, next: NextF
     const id = parseInt(req.params.id);
 
     if (!esNumeroValido(id)) {
-        res.status(400).json({ error: 'El template_id es obligatorio y debe ser un número válido.' });
+        res.status(400).json({ error: 'El id es obligatorio y debe ser un número válido.' });
         return;
     }
 
 
     next();
 }
+

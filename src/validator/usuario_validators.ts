@@ -84,22 +84,6 @@ async function validateVerifyUsuarios(req: Request, res: Response, next: NextFun
 
 
 
-/**
- * Validates the given ID from the request parameters.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @param {NextFunction} next - The next function.
- * @return {Promise<void>} - Returns nothing.
- */
-async function validateGetUsuarioById(req: Request, res: Response, next: NextFunction){
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-        return res.status(400).json({ error: 'ID inválido' });
-    }else{
-        return next();
-    }
-}
 
 
 /**
@@ -125,7 +109,6 @@ export {
     validateCreateUsuario,
     validateEditUsuario,
     validateVerifyUsuarios,
-    validateGetUsuarioById,
     validateGetUsuarioByEmail
     
 }

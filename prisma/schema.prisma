@@ -151,8 +151,8 @@ model registro_set {
   register_session_id     Int?
   set_id                  Int
   reps                    Int?
-  weight                  Int?
-  time                    Int?
+  weight                  Float?
+  time                    Float?
   timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
   video                   String?                 @db.VarChar(50)
   registro_de_sesion      registro_de_sesion?     @relation(fields: [register_session_id], references: [register_session_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_registro_de_sesion")
@@ -270,7 +270,9 @@ model registro_de_sesion {
   register_session_id     Int                     @id @default(autoincrement())
   user_id                 Int
   session_id              Int
-  date                    DateTime                @default(dbgenerated("(now())")) @db.DateTime(0)
+  date                    DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
+  final_date              DateTime?               @db.Timestamp(0)
+  finished                Boolean                 @default(false) @db.Bit(1)
   sesion_de_entrenamiento sesion_de_entrenamiento @relation(fields: [session_id], references: [session_id], onDelete: Cascade, map: "FK_registro_de_sesion_sesion_de_entrenamiento")
   usuario                 usuario                 @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_registro_sesion_usuario")
   registro_set            registro_set[]

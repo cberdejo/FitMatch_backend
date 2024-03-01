@@ -34,6 +34,23 @@ export async function paramUserIdAndExerciseIdValidation(req: Request, res: Resp
     next();
 }
 
+export async function paramUserIdAndTemplateIdValidation(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const userId = parseInt(req.params.user_id);
+    const template_id = parseInt(req.params.template_id);
+    if (!esNumeroValido(userId)) {
+        res.status(400).json({ error: 'El user_id es obligatorio y debe ser un número válido.' });
+        return;
+    } 
+
+    if (!esNumeroValido(template_id)) {
+        res.status(400).json({ error: 'El session_id es obligatorio y debe ser un número válido.' });
+    }
+
+
+    next();
+}
+
+
 export async function validateCreateRegistro(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { user_id, session_id} = req.body;
     if (!esNumeroValido(user_id)) {

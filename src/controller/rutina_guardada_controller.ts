@@ -73,7 +73,7 @@ export async function guardarPlantilla(req: Request, res: Response): Promise<voi
 export async function togglePublico(req: Request, res: Response): Promise<void> {
     try {
         const template_id = parseInt(req.params.template_id);
-
+        
 
         if (!esNumeroValido(template_id)) {
             res.status(400).json({ error: 'El identificador de la plantilla no es válido.' });
@@ -111,6 +111,7 @@ export async function toggleHiddenRutinaGuardada(req: Request, res: Response): P
     try {
         const template_id = parseInt(req.params.template_id);
         const user_id = parseInt(req.params.user_id);
+        
         const plantilla = await rutinaGuardadaService.toggleHiddenRutinaGuardada(template_id, user_id);
         res.status(200).json(plantilla);
         

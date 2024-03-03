@@ -92,6 +92,8 @@ export const registro_service = {
                 }
             });
 
+       
+
         }catch (error) {
             console.error(error);
             throw error;

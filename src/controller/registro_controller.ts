@@ -55,7 +55,9 @@ export async function getSessionWithRegistersByUserIdAndSessionId(req: Request, 
     try {
         const sessionId = parseInt(req.params.session_id);
         const userId = parseInt(req.params.user_id);
+
         const session = await registro_service.getSessionWithRegistersByUserIdAndSessionId(userId,sessionId);
+        // console.log(JSON.stringify(session, null, 2));
         return res.status(200).json(session);
     } catch (error) {
         console.error(error);
@@ -76,18 +78,24 @@ export async function createRegisterSession(req: Request, res: Response) {
 
 export async function addRegisterSet(req: Request, res: Response) {
     try {
-        const { user_id, register_session_id, set_id, reps, weight, time} = req.body;
+        const { create, user_id, register_session_id, register_set_id, set_id, reps, weight, time } = req.body;
+        
+        const canUpdate:boolean = register_set_id && (reps !== null || weight !== null || time !== null);
+        const canCreate:boolean = create && create == true;
         const existingRegisterSet = await registro_service.getRegisterSetByRegisterSessionIdAndSetId(user_id, register_session_id, set_id);
-        if (existingRegisterSet) {
-            const updatedRegisterSet = await registro_service.updateRegisterSet(existingRegisterSet.register_set_id, reps, weight, time);
+
+        if (existingRegisterSet && canUpdate) {
+            const updatedRegisterSet = await registro_service.updateRegisterSet(register_set_id, reps, weight, time);
             return res.status(200).json(updatedRegisterSet);
-        }else {
+        } else if (!existingRegisterSet || canCreate) {
             const newRegisterSet = await registro_service.createRegisterSet(register_session_id, set_id, reps, weight, time);
             return res.status(200).json(newRegisterSet);
+        } else {
+            return res.status(400).json({ error: 'No se proporcionaron datos válidos para actualizar el registro.' });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Error al crear el registro.' });
+        return res.status(500).json({ error: 'Error al crear o actualizar el registro.' });
     }
 }
 

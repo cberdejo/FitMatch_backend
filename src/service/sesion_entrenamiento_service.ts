@@ -26,7 +26,6 @@ export const sesionEntrenamientoService = {
     },
 
     async isSetIdInTrainingSession( session_id: number, set_id: number): Promise<boolean> {
-        console.log(session_id, set_id);
         const count = await db.sesion_de_entrenamiento.count({
             where: {
                 session_id: session_id,
@@ -46,7 +45,7 @@ export const sesionEntrenamientoService = {
             }
         });
         
-        console.log(count);
+       
         return count > 0;
     },
 

@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import {
-  createUsuarioService,
-  getUsuariosByEmailService,
-  editUsuarioService,
-  getUsuariosService,
-  getUsuarioByIdService,
+  usuario_service
 } from '../service/usuario_service';
 
 import { checkPassword, hashPassword } from '../config/crypting';
@@ -40,7 +36,7 @@ async function createUsuario(req: Request, res: Response) {
           password: hashPassword(password),
       };
 
-      const usuario = await createUsuarioService(crypt_data);
+      const usuario = await usuario_service.create(crypt_data);
       res.status(201).json(usuario);
   } catch (error) {
       console.log(error);
@@ -61,7 +57,7 @@ async function editUsuario(req: Request, res: Response) {
   try {
     const usuario = req.body; // Se pasa un usuario con una plainPassword
  
-    await editUsuarioService(usuario);
+    await usuario_service.edit(usuario);
     res.status(201).json({ message: 'Usuario editado' });
     console.log("usuario editado");
   } catch (error) {
@@ -77,7 +73,7 @@ async function editUsuario(req: Request, res: Response) {
  */
 async function getUsuarios(_req: Request, res: Response) {
   try {
-    const usuarios = await getUsuariosService();
+    const usuarios = await usuario_service.getAll();
     res.status(200).json(usuarios);
   } catch (error) {
     console.log(error);
@@ -95,7 +91,7 @@ async function verifyUsuarios(req: Request, res: Response) {
   try {
     const { email, plainPassword } = req.body;
 
-    const user = await getUsuariosByEmailService(email);
+    const user = await usuario_service.getByEmail(email);
     if (user === null) {
       res.status(401).json({ message: 'Credenciales incorrectas' });
     } else {
@@ -126,7 +122,7 @@ async function verifyUsuarios(req: Request, res: Response) {
 async function getUsuarioById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    const usuario = await getUsuarioByIdService(id);
+    const usuario = await usuario_service.getById(id);
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado' });
     } else {
@@ -146,7 +142,7 @@ async function getUsuarioById(req: Request, res: Response) {
 async function getUsuarioByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
-    const usuario = await getUsuariosByEmailService(email);
+    const usuario = await usuario_service.getByEmail(email);
     if (!usuario) {
       res.status(404).json({ error: 'Usuario no encontrado' });
     } else {
@@ -171,7 +167,7 @@ async function decodeToken(req: Request, res: Response) {
 
     const userEmail = decodedToken.email;
 
-    const user = await getUsuariosByEmailService(userEmail);
+    const user = await usuario_service.getByEmail(userEmail);
 
     if (!user) {
       res.status(404).json({ error: 'Usuario no encontrado' });

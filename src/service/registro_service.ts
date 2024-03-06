@@ -117,6 +117,7 @@ export const registro_service = {
             where: {
                 user_id: user_id,
                 sesion_de_entrenamiento: {
+                    activa: true,
                     template_id: template_id
                 }
             }, 
@@ -138,6 +139,7 @@ export const registro_service = {
             const nextSession = await db.sesion_de_entrenamiento.findFirst({
                 where: {
                     template_id: template_id,
+                    activa: true,
                     order: {
                         gt: lastRegister.sesion_de_entrenamiento.order
                     }
@@ -152,7 +154,8 @@ export const registro_service = {
         // Si no hay registros o no encontramos una sesión siguiente, buscamos la primera sesión
         const firstSesion = await db.sesion_de_entrenamiento.findFirst({
             where: {
-                template_id: template_id
+                template_id: template_id,
+                activa: true
             }, 
             orderBy: {
                 order: 'asc'
@@ -239,5 +242,12 @@ export const registro_service = {
             await db.$disconnect();
         }
         
+    }, 
+    async deleteRegisterSet(register_set_id: number) {
+        return await db.registro_set.delete({
+            where:{
+                register_set_id: register_set_id
+            }
+        })
     }
 }

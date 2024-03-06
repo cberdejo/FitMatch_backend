@@ -12,7 +12,8 @@ export const sesionEntrenamientoService = {
                 template_id: template_id,
                 session_name: session_name,
                 notes: notes,
-                order: order
+                order: order,
+                activa: true
             }
         })
         
@@ -78,16 +79,29 @@ export const sesionEntrenamientoService = {
 
                 const needsUpdate = checkIfUpdateIsNeeded(currentSession, sessionData);
                 if ( needsUpdate) {
-                    // Eliminar todos los grupos de ejercicios detallados existentes para esta sesión
-                    await prisma.ejercicios_detallados_agrupados.deleteMany({
+                    // Hacer inactiva esa sesión
+                    await prisma.sesion_de_entrenamiento.update({
                         where: { session_id: sessionId },
-                    });
+                        data: { activa: false },
+                    })
+                    //Crear nueva sesión activa
+                    const sesion = await prisma.sesion_de_entrenamiento.create({
+                        data: {
+                            template_id: currentSession.template_id,
+                            session_name: currentSession.session_name,
+                            session_date: currentSession.session_date,
+                            notes: currentSession.notes,
+                            order: currentSession.order,
+                            activa: true
+                        }
+                    })
+
 
                     // Reinsertar los grupos de ejercicios detallados y sus ejercicios detallados
                     for (const grupo of sessionData.ejercicios_detallados_agrupados!) {
                       await prisma.ejercicios_detallados_agrupados.create({
                             data: {
-                                session_id: sessionId,
+                                session_id: sesion.session_id,
                                 order: grupo.order,
                                 ejercicios_detallados: {
                                     create: grupo.ejercicios_detallados.map(ejercicio => ({
@@ -171,7 +185,7 @@ export const sesionEntrenamientoService = {
 
    async getByTemplateId (template_id: number) {
        return db.sesion_de_entrenamiento.findMany({
-           where: { template_id:template_id },
+           where: { template_id:template_id, activa: true },
            orderBy: { order: 'asc' },
            include: {
                ejercicios_detallados_agrupados: {

@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import { paramUserIdAndExerciseIdValidation, paramUserIdAndSessionIdValidation, validateCreateRegistro, validateAddRegistroSet, paramUserIdAndTemplateIdValidation } from '../validator/registro_validator';
 import {paramIdValidation} from '../validator/shared_validator'
-import { addRegisterSet, createRegisterSession, getAllRegisterSetFromRegisterSessionId, getAllRegistersByUserIdAndExerciseId, getAllRegistersByUserIdAndSessionId, getLastRegisterByUserIdAndSessionId, getLastRegistersByUserIdAndTemplateId, getSessionWithRegistersByUserIdAndSessionId, terminarRegistroDeSesion } from '../controller/registro_controller';
+import { addRegisterSet, createRegisterSession, deleteRegisterSet, getAllRegisterSetFromRegisterSessionId, getAllRegistersByUserIdAndExerciseId, getAllRegistersByUserIdAndSessionId, getLastRegisterByUserIdAndSessionId, getLastRegistersByUserIdAndTemplateId, getSessionWithRegistersByUserIdAndSessionId, terminarRegistroDeSesion } from '../controller/registro_controller';
 
 const router: Router = express.Router();
 
@@ -25,6 +25,9 @@ router.get('/registrosSessionPlantilla/:user_id/:template_id', paramUserIdAndTem
 router.post('/registrosSession', validateCreateRegistro, createRegisterSession) 
 //crear un registro set
 router.post('/registros/', validateAddRegistroSet, addRegisterSet) 
+
+//registro set
+router.delete('/registros/:id', paramIdValidation, deleteRegisterSet);
 
 //terminar un registro de sesión
 router.put('/registrosSession/:id', paramIdValidation, terminarRegistroDeSesion)

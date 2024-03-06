@@ -6,6 +6,7 @@ export interface UpdateSessionData {
     ejercicios_detallados_agrupados?: Array<{
         order: number;
         ejercicios_detallados: Array<{
+            
             exercise_id: number;
             order: number;
             register_type_id: number;

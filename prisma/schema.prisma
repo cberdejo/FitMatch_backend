@@ -212,6 +212,7 @@ model sesion_de_entrenamiento {
   session_date                    DateTime                          @default(dbgenerated("(now())")) @db.Date
   notes                           String?                           @db.Text
   order                           Int                               @default(0)
+  activa                          Boolean                           @db.Bit(1)
   ejercicios_detallados_agrupados ejercicios_detallados_agrupados[]
   registro_de_sesion              registro_de_sesion[]
   plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
@@ -245,17 +246,20 @@ model tipo_de_registro {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model usuario {
   user_id                     Int                           @id @default(autoincrement())
+  profile_id                  Int                           @default(2)
   username                    String                        @db.VarChar(255)
   email                       String                        @unique(map: "email") @db.VarChar(255)
   password                    String                        @db.VarChar(255)
   profile_picture             String?                       @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png") @db.VarChar(255)
-  profile_id                  Int                           @default(2)
   birth                       DateTime?                     @default(dbgenerated("(now())")) @db.Date
+  system                      String                        @default("metrico") @db.VarChar(50)
+  bio                         String?                       @db.Text
   public                      Boolean                       @default(true) @db.Bit(1)
   comentario_review           comentario_review[]
   ejercicios                  ejercicios[]
   me_gusta_comentarios        me_gusta_comentarios[]
   me_gusta_reviews            me_gusta_reviews[]
+  notificacion                notificacion[]
   plantillas_de_entrenamiento plantillas_de_entrenamiento[]
   registro_de_sesion          registro_de_sesion[]
   reviews                     reviews[]
@@ -279,4 +283,16 @@ model registro_de_sesion {
 
   @@index([session_id], map: "FK_registro_de_sesion_sesion_de_entrenamiento")
   @@index([user_id], map: "FK_registro_sesion_usuario")
+}
+
+model notificacion {
+  notification_id Int      @id @default(autoincrement())
+  user_id         Int
+  type            String   @db.VarChar(50)
+  mensaje         String   @db.Text
+  read            Boolean  @default(false) @db.Bit(1)
+  timestamp       DateTime @default(dbgenerated("(0)")) @db.Timestamp(0)
+  usuario         usuario  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_notificacion_usuario")
+
+  @@index([user_id], map: "FK_notificacion_usuario")
 }

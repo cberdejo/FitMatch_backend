@@ -7,7 +7,9 @@ import { checkPassword, hashPassword } from '../config/crypting';
 
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from 'jsonwebtoken';
-import { postImage } from '../config/cloudinary';
+import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
+import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 
@@ -44,6 +46,29 @@ async function createUsuario(req: Request, res: Response) {
   }
 }
 
+async function getUsuarioToken(req: Request, res: Response) {
+  try {
+    const id:number = parseInt(req.params.id);
+
+    const user = await usuario_service.getById(id);
+
+    if (user === null) {
+      res.status(401).json({ message: 'usuario no exite' });
+    } else {
+      
+        // Crea un token JWT con la clave secreta+
+        let token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+        token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        
+        res.status(200).json({ token });
+      } 
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+}
 
 
 
@@ -55,10 +80,50 @@ async function createUsuario(req: Request, res: Response) {
  */
 async function editUsuario(req: Request, res: Response) {
   try {
-    const usuario = req.body; // Se pasa un usuario con una plainPassword
- 
-    await usuario_service.edit(usuario);
-    res.status(201).json({ message: 'Usuario editado' });
+    const user_id = parseInt(req.params.id); 
+    const { username, email, password, profile_id, birth, bio, isPublic, system } = req.body;
+    const profile_picture = req.file;
+    const existingUser = await usuario_service.getById(user_id);
+    if (!existingUser) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
+    let cloudinary_profile_picture;
+    if (existingUser.profile_picture && profile_picture) {
+      // Obtener el ID público de la imagen existente
+      const publicImageId = getPublicIdFromUrl(existingUser.profile_picture);
+
+      // Eliminar la imagen existente
+    
+      await deleteImageFromCloudinary(publicImageId);
+
+      // Subir la nueva imagen
+      cloudinary_profile_picture = await postImage(profile_picture);
+    } else if (profile_picture) {
+        // No hay imagen existente, pero hay una nueva imagen para subir
+        cloudinary_profile_picture = await postImage(profile_picture);
+    } else {
+        // Mantener la imagen actual si no hay una nueva imagen
+        cloudinary_profile_picture = existingUser.profile_picture;
+    }
+
+      // Comprobar todos los parámetros y enviar undefined si son nulos o iguales a los valores existentes
+      const dataToEdit = {
+        user_id,
+        username: (username !== null && username !== existingUser.username) ? username : undefined,
+        email: (email !== null && email !== existingUser.email) ? email : undefined,
+        password: (password !== null && password !== existingUser.password) ? hashPassword(password) : undefined,
+        profile_picture: (cloudinary_profile_picture !== null && cloudinary_profile_picture !== existingUser.profile_picture) ? cloudinary_profile_picture : undefined,
+        birth: (birth !== null && new Date(birth) !== existingUser.birth) ? new Date(birth) : undefined,
+        bio: (bio !== null && bio!= "" && bio !== existingUser.bio) ? bio : undefined,
+        public: (isPublic !== null && isPublic !== existingUser.public) ? ((isPublic === 'true') ? true : false ) : undefined,
+        system: (system !== null && system !== existingUser.system) ? system : undefined,
+        profile_id: (profile_id !== null && esNumeroValido(profile_id) && profile_id !== existingUser.profile_id)  ? parseInt(profile_id) : undefined,
+      };
+  
+      const user = await usuario_service.edit(dataToEdit);
+      console.log(user);
+      res.status(201).json(user);
     console.log("usuario editado");
   } catch (error) {
     console.log(error);
@@ -193,4 +258,5 @@ export {
   getUsuarios,
   verifyUsuarios,
   decodeToken,
+  getUsuarioToken
 }

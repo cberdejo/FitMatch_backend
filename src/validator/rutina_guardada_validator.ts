@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { esNumeroValido } from "../utils/funciones_auxiliares_validator";
 import { plantillaService } from "../service/plantilla_posts_service";
-import { getUsuarioByIdService } from "../service/usuario_service";
+import { usuario_service } from "../service/usuario_service";
 
 
 
@@ -30,7 +30,7 @@ export async function validateCreateRutinaGuardada(req: Request, res: Response, 
         return;
     }
     const template = await plantillaService.getById(template_id);
-    const user = await getUsuarioByIdService(user_id);
+    const user = await usuario_service.getById(user_id);
 
     if (!template || !user) {
         res.status(400).json({ error: 'Plantilla o usuario no encontrado.' });
@@ -85,7 +85,7 @@ export async function validateCreateRutinaArchivada(req: Request, res: Response,
         return;
     }
     const template = await plantillaService.getById(template_id);
-    const user = await getUsuarioByIdService(user_id);
+    const user = await usuario_service.getById(user_id);
 
     if (!template || !user) {
         res.status(400).json({ error: 'Plantilla o usuario no encontrado.' });

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { commentService, likeCommentService, likeReviewService, reviewService, } from '../service/review_service'; 
-import {  getUsuarioByIdService } from '../service/usuario_service';
+import {  usuario_service } from '../service/usuario_service';
 import { me_gusta_comentarios, reviews, usuario } from '@prisma/client';
 import { filtroReview } from '../interfaces/filtros';
 
@@ -85,7 +85,7 @@ async function addReview(req: Request, res: Response) {
         const { templateId, userId, rating, reviewContent } = req.body;
   
         const review: reviews= await reviewService.create(templateId, userId, rating, reviewContent);
-        const user: usuario | null= await getUsuarioByIdService(userId);
+        const user: usuario | null= await usuario_service.getById(userId);
  
         if (!user) {
             res.status(400).json({ error: 'username no encontrado con userId' });
@@ -140,7 +140,7 @@ async function answerReview(req: Request, res: Response) {
         const { userId, reviewId, answer } = req.body;
         const comment = await commentService.create(reviewId, userId, answer);
 
-        const user = await getUsuarioByIdService(userId);
+        const user = await usuario_service.getById(userId);
         if (!user) {
             res.status(400).json({ error: 'user no encontrado con userId' });
             return;

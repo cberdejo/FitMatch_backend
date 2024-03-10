@@ -71,25 +71,55 @@ export const usuario_service = {
     }
   },
 
+
+
   /**
    * Edita la información de un usuario en la base de datos.
    * @param data - Datos actualizados del usuario.
    * @returns Promise con el mensaje de éxito.
    */
-  async  edit(data: any) {
-    try {
-      return db.usuario.update({
-        where: {
-          user_id: data.user_id,
-        },
-        data: data,
-      });
-    } catch (error) {
-      console.error('Error al editar usuario en la base de datos', error);
-      throw new Error('No se pudo editar el usuario');
-    }
-  },
+  
+async edit(data: {
+  user_id: number;
+  username?: string;
+  email?: string;
+  password?: string;
+  profile_picture?: string;
+  birth?: Date;
+  bio?: string;
+  public?: boolean;
+  system?: string;
+  profile_id?: number;
+}) {
+  try {
+    const { user_id, ...updateData } = data; 
 
+    // Filtrar propiedades indefinidas o nulas
+    const filteredData = Object.entries(updateData).reduce((acc: { [key: string]: any }, [key, value]) => {
+      if (value !== null && value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+
+    if (Object.keys(filteredData).length === 0) {
+      throw new Error('No se proporcionaron datos para actualizar');
+    }
+
+    // Asegurarse de que user_id esté definido para la cláusula where
+    if (!user_id) {
+      throw new Error('El user_id es necesario para realizar la actualización');
+    }
+
+    return await db.usuario.update({
+      where: { user_id },
+      data: filteredData,
+    });
+  } catch (error) {
+    console.error('Error al editar usuario en la base de datos', error);
+    throw new Error('No se pudo editar el usuario');
+  }
+},
   async getWeightSystemByUserId(userId: number): Promise<string> {
     try {
       const user = await this.getById(userId);

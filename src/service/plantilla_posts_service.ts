@@ -219,19 +219,40 @@ async  postPlantilla(plantilla: {
     }, 
     async toggleHiddenCreada(template_id: number) {
       const template = await db.plantillas_de_entrenamiento.findUnique({
-        where: { template_id },
+        where: { template_id: template_id },
+        include: {
+          sesion_de_entrenamiento: {
+            include: {
+              registro_de_sesion: true,
+            }
+          }
+        }
       });
       if (template) {
         const newHiddenValue = template.hidden ? false : true;
         const publicValue = newHiddenValue ? undefined : false;
-        return db.plantillas_de_entrenamiento.update({
+        const updatedTemplate = db.plantillas_de_entrenamiento.update({
           where: { template_id },
           data: { hidden: newHiddenValue , public: publicValue},
         })
-      }
-      /*
+
+        /*
         En caso de que no haya ningún registro de un set en ninguna sesión de entrenamiento, se borrará de la tabla plantillas_de_entrenamiento
-      */
+        */
+
+        const shouldDeleteRutina = template.sesion_de_entrenamiento.every(
+          (sesion) => sesion.registro_de_sesion.length === 0
+        );
+
+        if (shouldDeleteRutina) {
+          await db.plantillas_de_entrenamiento.delete({
+            where: { template_id: template.template_id },
+          });
+        }
+        return updatedTemplate;
+       
+      }
+     
       return null;
     }, 
 

@@ -155,8 +155,8 @@ model registro_set {
   time                    Float?
   timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
   video                   String?                 @db.VarChar(50)
-  registro_de_sesion      registro_de_sesion?     @relation(fields: [register_session_id], references: [register_session_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_registro_de_sesion")
-  sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_registro_set_sets_ejercicios_entrada")
+  registro_de_sesion      registro_de_sesion?     @relation(fields: [register_session_id], references: [register_session_id], onDelete: Cascade, map: "FK_registro_set_registro_de_sesion")
+  sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: Cascade, map: "FK_registro_set_sets_ejercicios_entrada")
 
   @@index([set_id], map: "FK_registro_set_sets_ejercicios_entrada")
   @@index([register_session_id], map: "FK_registro_set_registro_de_sesion")
@@ -259,6 +259,7 @@ model usuario {
   ejercicios                  ejercicios[]
   me_gusta_comentarios        me_gusta_comentarios[]
   me_gusta_reviews            me_gusta_reviews[]
+  medidas                     medidas[]
   notificacion                notificacion[]
   plantillas_de_entrenamiento plantillas_de_entrenamiento[]
   registro_de_sesion          registro_de_sesion[]
@@ -295,4 +296,33 @@ model notificacion {
   usuario         usuario  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_notificacion_usuario")
 
   @@index([user_id], map: "FK_notificacion_usuario")
+}
+
+model fotos_progreso {
+  id             Int     @id @default(autoincrement())
+  measurement_id Int
+  imagen         String  @db.VarChar(255)
+  medidas        medidas @relation(fields: [measurement_id], references: [measurement_id], onDelete: Cascade, map: "FK_fotos_progreso_medidas")
+
+  @@index([measurement_id], map: "FK_fotos_progreso_medidas")
+}
+
+model medidas {
+  measurement_id  Int              @id @default(autoincrement())
+  user_id         Int
+  left_arm        Float?           @map("left arm")
+  right_arm       Float?           @map("right arm")
+  shoulders       Float?
+  neck            Float?
+  chest           Float?
+  waist           Float?
+  upper_left_leg  Float?           @map("upper left leg")
+  upper_right_leg Float?           @map("upper right leg")
+  left_calve      Float?           @map("left calve")
+  right_calve     Float?           @map("right calve")
+  weight          Float?
+  fotos_progreso  fotos_progreso[]
+  usuario         usuario          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_medidas_usuario")
+
+  @@index([user_id], map: "FK_medidas_usuario")
 }

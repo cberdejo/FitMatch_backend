@@ -112,7 +112,7 @@ async function editUsuario(req: Request, res: Response) {
         user_id,
         username: (username !== null && username !== existingUser.username) ? username : undefined,
         email: (email !== null && email !== existingUser.email) ? email : undefined,
-        password: (password !== null && password !== existingUser.password) ? hashPassword(password) : undefined,
+        password: (password !== null && !checkPassword(password, existingUser.password)) ? hashPassword(password) : undefined,
         profile_picture: (cloudinary_profile_picture !== null && cloudinary_profile_picture !== existingUser.profile_picture) ? cloudinary_profile_picture : undefined,
         birth: (birth !== null && new Date(birth) !== existingUser.birth) ? new Date(birth) : undefined,
         bio: (bio !== null && bio!= "" && bio !== existingUser.bio) ? bio : undefined,

@@ -111,9 +111,6 @@ export const exerciseService = {
         }
   
       },
-
-     
-    
       
     }
 

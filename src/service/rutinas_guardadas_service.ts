@@ -34,6 +34,23 @@ export const rutinaGuardadaService = {
   async guardarPlantilla(template_id: number, user_id: number) {
     try {
       const result = await db.$transaction(async (prisma) => {
+        const guardada = await prisma.rutinas_guardadas.findFirst({
+          where: {
+            template_id: template_id,
+            user_id: user_id,
+          }
+        }); 
+        if (guardada) {
+          return await prisma.rutinas_guardadas.update({
+            where: {
+              saved_id: guardada.saved_id,
+            }, 
+            data: {
+              hidden: !guardada.hidden
+            }
+          })
+        }
+
         // Verificar si la plantilla está archivada
         const archivada = await prisma.rutinas_archivadas.findFirst({
           where: {
@@ -42,7 +59,7 @@ export const rutinaGuardadaService = {
           },
         });
   
-        // Si está archivada, eliminarla de plantillas_de_entrenamiento
+        // Si está archivada, eliminarla de archivada
         if (archivada) {
           await prisma.rutinas_archivadas.delete({
             where: {
@@ -50,6 +67,8 @@ export const rutinaGuardadaService = {
             },
           });
         }
+
+        
   
         // Añadir la plantilla a rutinas_guardadas, ya sea que estuviera archivada o no
         const activada = await prisma.rutinas_guardadas.create({

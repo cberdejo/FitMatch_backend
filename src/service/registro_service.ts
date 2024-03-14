@@ -2,7 +2,85 @@
 import { sesion_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 
+
+
 export const registro_service = {
+    async getSesionesWithRegisterByUserId(user_id: number, fecha?: Date) {
+
+        let fechaInicio = fecha ? new Date(fecha.setHours(0, 0, 0, 0)) : new Date(0);
+        let fechaFin = fecha ? new Date(fecha.setHours(23, 59, 59, 999)) : undefined;
+
+        let whereClause = {
+            registro_de_sesion: {
+                some: {
+                    user_id: user_id,
+                    finished: true,
+                    final_date: {
+                        gte: fechaInicio,
+                        ...(fechaFin && { lte: fechaFin }), 
+                    },
+                },
+            },
+        };
+
+        try {
+            return await db.sesion_de_entrenamiento.findMany({
+                where: whereClause,
+               
+               
+                include:{
+                    
+                    ejercicios_detallados_agrupados: {
+                        include: {
+                            ejercicios_detallados: {
+                              
+                                include: {
+                                    sets_ejercicios_entrada: {
+                                        include: {
+                                            registro_set: {
+
+                                                where: {
+                                                    registro_de_sesion:{
+                                                        user_id: user_id,
+                                                        finished: true,
+                                                        final_date: {
+                                                            gte: fechaInicio,
+                                                            ...(fechaFin && { lte: fechaFin }), 
+                                                        },
+                                                    }
+                                                   
+                                                }
+                                            }
+                                        }
+                                    },
+                                    ejercicios: true
+                                }
+                            }
+                        }
+                    }, 
+                    registro_de_sesion: {
+                        where: {
+                            
+                            user_id: user_id,
+                            finished: true,
+                            final_date: {
+                                gte: fechaInicio,
+                                ...(fechaFin && { lte: fechaFin }), 
+                              
+                            }
+                        },
+                        orderBy: {
+                            final_date: 'desc'
+                        }
+                    }
+                }
+            });
+          
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
     async getRegisterSessionById(id: number) {
         try{
             return await db.registro_de_sesion.findUnique({
@@ -221,28 +299,42 @@ export const registro_service = {
             }
         })
     },
-    async terminarRegistroDeSesion( register_session_id: number) {
+    async  terminarRegistroDeSesion(register_session_id: number) {
         try {
-            return await db.registro_de_sesion.update(
-               {
-                   where:{
-                       register_session_id: register_session_id
-                   },
-                   data:{
-                       finished: true,
-                       final_date: new Date()
-                   }
-               }
-            )
-
+            const registroActual = await db.registro_de_sesion.findUnique({
+                where: {
+                    register_session_id: register_session_id
+                },
+                select: {
+                    finished: true 
+                }
+            });
+    
+            if (registroActual) {
+              
+                const finalizar = !registroActual.finished;
+                return await db.registro_de_sesion.update({
+                    where: {
+                        register_session_id: register_session_id
+                    },
+                    data: {
+                        finished: finalizar,
+                        final_date: finalizar ? new Date() : null 
+                    }
+                });
+            } else {
+                console.error('Registro no encontrado');
+                throw new Error('Registro no encontrado');
+            }
+    
         } catch (error) {
             console.error(error);
             throw error;
-        } finally{
+        } finally {
             await db.$disconnect();
         }
-        
-    }, 
+    },
+    
     async deleteRegisterSet(register_set_id: number) {
         return await db.registro_set.delete({
             where:{

@@ -126,7 +126,7 @@ export async function toggleHiddenRutinaArchivada(req: Request, res: Response): 
         const template_id = parseInt(req.params.template_id);
         const user_id = parseInt(req.params.user_id);
         
-        const plantilla = await rutinaGuardadaService.toggleHiddenRutinaArchivada(template_id, user_id);
+        const plantilla = await rutinaArchivadaService.toggleHiddenRutinaArchivada(template_id, user_id);
         res.status(200).json(plantilla);
         
     } catch (error) {

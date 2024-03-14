@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { registro_service } from '../service/registro_service';
 import { usuario_service } from '../service/usuario_service';
+import { isValid, parseISO } from 'date-fns';
 export async function getAllRegistersByUserIdAndExerciseId(req: Request, res: Response) {
     
     try {
@@ -8,6 +9,7 @@ export async function getAllRegistersByUserIdAndExerciseId(req: Request, res: Re
         const exercise_Id = parseInt(req.params.exercise_Id);
         
         const registers = await registro_service.getAllRegistersByUserIdAndExerciseId(userId, exercise_Id);
+
         return res.status(200).json(registers);
         
     } catch (error) {
@@ -60,6 +62,32 @@ export async function getSessionWithRegistersByUserIdAndSessionId(req: Request, 
         const session = await registro_service.getSessionWithRegistersByUserIdAndSessionId(userId,sessionId);
         // console.log(JSON.stringify(session, null, 2));
         return res.status(200).json(session);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error al obtener los registros.' });
+    }
+}
+export async function getSesionesWithRegisterByUserId(req: Request, res: Response) {
+    try {
+        const userId = parseInt(req.params.id);
+        const fechaString: string | undefined = req.query.date? req.query.date as string: undefined;
+        let fecha: Date | undefined;
+        if (fechaString) {
+            const parsedDate = parseISO(fechaString); // Parsea la fecha usando date-fns
+            if (isValid(parsedDate)) { // Verifica si la fecha es válida
+                fecha = parsedDate;
+            } else {
+                return res.status(400).json({ error: 'Formato de fecha inválido. Por favor, use YYYY-MM-DD.' });
+            }
+        }
+        const sesiones = await registro_service.getSesionesWithRegisterByUserId(userId, fecha);
+
+        if (!sesiones || sesiones.length === 0) {
+            return res.status(204).json({ message: 'No existen sesiones para el usuario con id ' + userId });
+        }
+        console.log( JSON.stringify(sesiones));
+        return res.status(200).json(sesiones);
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Error al obtener los registros.' });

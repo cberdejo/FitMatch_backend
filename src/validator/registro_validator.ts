@@ -20,14 +20,14 @@ export async function paramUserIdAndSessionIdValidation(req: Request, res: Respo
 
 export async function paramUserIdAndExerciseIdValidation(req: Request, res: Response, next: NextFunction): Promise<void> {
     const userId = parseInt(req.params.user_id);
-    const exercise_Id = parseInt(req.params.exercise_Id);
+    const exercise_Id = parseInt(req.params.detailed_exercise_Id);
     if (!esNumeroValido(userId)) {
         res.status(400).json({ error: 'El user_id es obligatorio y debe ser un número válido.' });
         return;
     } 
 
     if (!esNumeroValido(exercise_Id)) {
-        res.status(400).json({ error: 'El session_id es obligatorio y debe ser un número válido.' });
+        res.status(400).json({ error: 'El exercise_Id es obligatorio y debe ser un número válido.' });
     }
 
 

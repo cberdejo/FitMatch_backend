@@ -7,7 +7,7 @@ const router: Router = express.Router();
 
 
 //Obtener todos los registros de un ejercicio de un user_id
-router.get('/registros/:user_id/:exercise_Id', paramUserIdAndExerciseIdValidation, getAllRegistersByUserIdAndExerciseId);
+router.get('/registros/:user_id/:detailed_exercise_Id', paramUserIdAndExerciseIdValidation, getAllRegistersByUserIdAndExerciseId);
 // obtener todos los registros de una sesión de ejercicios de un user_id ordenados por fecha
 router.get('/registrosSession/:user_id/:session_id',paramUserIdAndSessionIdValidation, getAllRegistersByUserIdAndSessionId);
 //obtener el anterior  registro de un ejercicio de una sesión 

@@ -93,20 +93,52 @@ export const registro_service = {
             await db.$disconnect();
         }
     },
-    async  getAllRegistersByUserIdAndExerciseId(user_id: number, exercise_id: number) {
+    async  getAllRegistersByUserIdAndExerciseId(user_id: number, detailed_exercise_id: number) {
         try{
-            return await db.registro_set.findMany({
+            const registros =  await db.registro_set.findMany({
                 where: {
                     registro_de_sesion:{
                     user_id: user_id,   
                     },
                     sets_ejercicios_entrada:{
                         ejercicios_detallados:{
-                            exercise_id: exercise_id
+                            detailed_exercise_id: detailed_exercise_id,
+                        }
+                    }
+                }, 
+                include: {
+                    sets_ejercicios_entrada: {
+                        include: {
+                            ejercicios_detallados: {
+                                include: {
+                                    ejercicios: true
+                                }
+                            }
                         }
                     }
                 }
             })
+               // Transformar los datos para aplanar la estructura
+               const registrosAplanados = registros.map(registro => {
+                // Accediendo directamente, ya que no son arreglos según lo mencionado
+                const ejercicioDetallado = registro.sets_ejercicios_entrada?.ejercicios_detallados;
+                const ejercicio = ejercicioDetallado?.ejercicios;
+            
+                return {
+                    registro_set_id: registro.set_id,
+                    register_session_id: registro.register_session_id,
+                    set_id: registro.set_id,
+                    reps: registro.reps,
+                    weight: registro.weight,
+                    time: registro.time,
+                    timestamp: registro.timestamp,
+                    video: registro.video,
+                    nombre_ejercicio: ejercicio?.name, // Acceso condicional, ya que ejercicio puede ser undefined
+                };
+            });
+            
+
+        return registrosAplanados;
         }catch (error) {
             console.error(error);
             throw error;

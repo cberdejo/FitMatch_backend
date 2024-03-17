@@ -6,9 +6,9 @@ export async function getAllRegistersByUserIdAndExerciseId(req: Request, res: Re
     
     try {
         const userId = parseInt(req.params.user_id);
-        const exercise_Id = parseInt(req.params.exercise_Id);
+        const detailed_exercise_Id = parseInt(req.params.detailed_exercise_Id);
         
-        const registers = await registro_service.getAllRegistersByUserIdAndExerciseId(userId, exercise_Id);
+        const registers = await registro_service.getAllRegistersByUserIdAndExerciseId(userId, detailed_exercise_Id);
 
         return res.status(200).json(registers);
         

@@ -10,7 +10,7 @@ import rutinaGuardadaRouter from './routes/rutinas_guardadas_routes';
 import sesionEntrenamientoRouter from './routes/sesion_entrenamiento_routes';
 import ejerciciosRouter from './routes/exercises_routes';
 import registroRouter from './routes/registro_routes';
-
+import medidasRouter from './routes/medidas_routes';
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -58,6 +58,7 @@ app.use('/', rutinaGuardadaRouter);
 app.use('/', sesionEntrenamientoRouter);
 app.use('/', ejerciciosRouter);
 app.use('/', registroRouter);
+app.use('/', medidasRouter);
 
 /*
 httpsServer.listen(port, () => {

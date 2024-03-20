@@ -106,6 +106,9 @@ export const registro_service = {
                         }
                     }
                 }, 
+                orderBy: {
+                    timestamp: 'asc'
+                },
                 include: {
                     sets_ejercicios_entrada: {
                         include: {
@@ -119,26 +122,26 @@ export const registro_service = {
                 }
             })
                // Transformar los datos para aplanar la estructura
-               const registrosAplanados = registros.map(registro => {
-                // Accediendo directamente, ya que no son arreglos según lo mencionado
-                const ejercicioDetallado = registro.sets_ejercicios_entrada?.ejercicios_detallados;
-                const ejercicio = ejercicioDetallado?.ejercicios;
+            //    const registrosAplanados = registros.map(registro => {
+            //     // Accediendo directamente, ya que no son arreglos según lo mencionado
+            //     const ejercicioDetallado = registro.sets_ejercicios_entrada?.ejercicios_detallados;
+            //     const ejercicio = ejercicioDetallado?.ejercicios;
             
-                return {
-                    registro_set_id: registro.set_id,
-                    register_session_id: registro.register_session_id,
-                    set_id: registro.set_id,
-                    reps: registro.reps,
-                    weight: registro.weight,
-                    time: registro.time,
-                    timestamp: registro.timestamp,
-                    video: registro.video,
-                    nombre_ejercicio: ejercicio?.name, // Acceso condicional, ya que ejercicio puede ser undefined
-                };
-            });
+            //     return {
+            //         registro_set_id: registro.set_id,
+            //         register_session_id: registro.register_session_id,
+            //         set_id: registro.set_id,
+            //         reps: registro.reps,
+            //         weight: registro.weight,
+            //         time: registro.time,
+            //         timestamp: registro.timestamp,
+            //         video: registro.video,
+            //         nombre_ejercicio: ejercicio?.name, // Acceso condicional, ya que ejercicio puede ser undefined
+            //     };
+            // });
             
 
-        return registrosAplanados;
+        return registros;
         }catch (error) {
             console.error(error);
             throw error;

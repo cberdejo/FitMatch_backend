@@ -316,11 +316,12 @@ model medidas {
   neck            Float?
   chest           Float?
   waist           Float?
-  upper_left_leg  Float?           @map("upper left leg")
-  upper_right_leg Float?           @map("upper right leg")
-  left_calve      Float?           @map("left calve")
-  right_calve     Float?           @map("right calve")
+  upper_left_leg  Float?
+  upper_right_leg Float?
+  left_calve      Float?
+  right_calve     Float?
   weight          Float?
+  timestamp       DateTime         @default(dbgenerated("(now())")) @db.Timestamp(0)
   fotos_progreso  fotos_progreso[]
   usuario         usuario          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_medidas_usuario")
 

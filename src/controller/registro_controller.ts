@@ -85,7 +85,6 @@ export async function getSesionesWithRegisterByUserId(req: Request, res: Respons
         if (!sesiones || sesiones.length === 0) {
             return res.status(204).json({ message: 'No existen sesiones para el usuario con id ' + userId });
         }
-        console.log( JSON.stringify(sesiones));
         return res.status(200).json(sesiones);
 
     } catch (error) {

@@ -1,7 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
+import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
+import { usuario_service } from '../service/usuario_service';
 
 
 
+async function validateUserId(req: Request, res: Response, next: NextFunction) {
+    const userId = parseInt(req.params.userId);
+    if (!esNumeroValido(userId)) {
+        return res.status(400).json({ error: 'El id es obligatorio y debe ser un número más pequeño.' });
+    } 
+    const user = await usuario_service.getById(userId);
+    if (!user) {
+        return res.status(400).json({ error: 'Usuario no encontrado.' });
+    }
+    return next();
+}
 /**
  * Validates the request body for creating a new user.
  *
@@ -105,7 +118,9 @@ async function validateGetUsuarioByEmail(req: Request, res: Response, next: Next
 }
    
 
+
 export {
+    validateUserId,
     validateCreateUsuario,
     validateEditUsuario,
     validateVerifyUsuarios,

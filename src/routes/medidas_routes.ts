@@ -9,10 +9,10 @@ import { createMedidas, deleteMedidas, getAllMedidas, updateMedidas } from '../c
 
 const medidasRouter: Router = express.Router();
 
-medidasRouter.post ('/medidas', upload.array('picture'), createMedidas );
+medidasRouter.post ('/medidas', upload.array('pictures'), createMedidas );
 
 medidasRouter.get('/medidas/:userId', validateUserId, getAllMedidas ); 
 medidasRouter.delete('/medidas/:id', paramIdValidation, deleteMedidas );
-medidasRouter.put('/medidas/:id', upload.array('picture'), paramIdValidation, updateMedidas );
+medidasRouter.put('/medidas/:id', upload.array('pictures'), paramIdValidation, updateMedidas );
 
 export default medidasRouter;

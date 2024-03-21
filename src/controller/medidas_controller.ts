@@ -1,28 +1,50 @@
-import { medidas } from '@prisma/client';
 import { Request, Response } from 'express'; 
 import { fotosProgresoService, medidaService } from '../service/medidas_service';
 import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
 import { medidaCreacion } from '../interfaces/medida_creacion';
+import { usuario_service } from '../service/usuario_service';
 
 const toDouble = (value:string) => isNaN(parseFloat(value)) ? undefined : parseFloat(value);
-
+const fromInchesToCm = (value?:number) => (value != undefined) ? value * 2.54: undefined;
+ const fromLbsToKg = (value?:number) => (value != undefined) ? value / 0.453592 : undefined;
 export async function createMedidas ( req : Request, res: Response){
 
     try { 
         
     const userId  = parseInt(req.body.user_id);
-    const weight = toDouble(req.body.weight);
-    const rightArm = toDouble(req.body.right_arm);
-    const leftArm = toDouble(req.body.left_arm);
-    const rightLeg = toDouble(req.body.upper_right_leg);
-    const leftLeg = toDouble(req.body.upper_left_leg);  
-     const neck = toDouble(req.body.neck);
-     const shoulders = toDouble(req.body.shoulders);
-     const waist = toDouble(req.body.waist);
-    const leftCalve = toDouble(req.body.left_calve);
-    const rightCalve = toDouble(req.body.right_calve);
-    const chest = toDouble(req.body.chest);
+    let weight = toDouble(req.body.weight);
+    let rightArm = toDouble(req.body.right_arm);
+    let leftArm = toDouble(req.body.left_arm);
+    let rightLeg = toDouble(req.body.upper_right_leg);
+    let leftLeg = toDouble(req.body.upper_left_leg);  
+    let neck = toDouble(req.body.neck);
+    let shoulders = toDouble(req.body.shoulders);
+    let waist = toDouble(req.body.waist);
+    let leftCalve = toDouble(req.body.left_calve);
+    let rightCalve = toDouble(req.body.right_calve);
+    let chest = toDouble(req.body.chest);
+    let leftForearm = toDouble(req.body.left_forearm);
+    let rightForearm = toDouble(req.body.right_forearm);
+   
+    const weightSystem = await usuario_service.getWeightSystemByUserId(userId);
+    //Realizamos la conversión si es necesario
+    if (weightSystem==='imperial'){
+        weight = fromLbsToKg(weight);
+        rightArm = fromInchesToCm(rightArm);
+        leftArm = fromInchesToCm(leftArm);
+        rightLeg = fromInchesToCm(rightLeg);
+        leftLeg = fromInchesToCm(leftLeg);
+        neck = fromInchesToCm(neck);
+        shoulders = fromInchesToCm(shoulders);
+        waist = fromInchesToCm(waist);
+        leftCalve = fromInchesToCm(leftCalve);
+        rightCalve = fromInchesToCm(rightCalve);
+        chest = fromInchesToCm(chest);
+        leftForearm = fromInchesToCm(leftForearm);
+        rightForearm = fromInchesToCm(rightForearm);
+
+    }
 
     const newMedida : medidaCreacion = { 
         user_id: userId,
@@ -37,6 +59,8 @@ export async function createMedidas ( req : Request, res: Response){
         left_calve: leftCalve,
         right_calve: rightCalve,
         chest: chest, 
+        left_forearm: leftForearm,
+        right_forearm: rightForearm
 
     };
 

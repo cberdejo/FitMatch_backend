@@ -1,4 +1,3 @@
-import { medidas } from "@prisma/client";
 import db  from "../config/database";
 import { medidaCreacion } from "../interfaces/medida_creacion";
 

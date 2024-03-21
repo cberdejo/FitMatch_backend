@@ -11,5 +11,7 @@ export interface medidaCreacion{
     left_calve?: number,
     right_calve?: number,
     chest?: number, 
+    left_forearm?: number,
+    right_forearm?: number
     
 } 

@@ -23,6 +23,9 @@ export const medidaService = {
                 }, 
                 include: {
                     fotos_progreso: true
+                }, 
+                orderBy: {
+                    timestamp: 'desc'
                 }
             });
         } catch (error) {

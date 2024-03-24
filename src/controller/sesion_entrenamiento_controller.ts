@@ -42,12 +42,13 @@ export async function createSesionEntrenamiento(req: Request, res: Response): Pr
  */
 export async function deleteSesionEntrenamiento(req: Request, res: Response) {
     try {
-        const { session_id } = req.params;
+        const session_id:number = parseInt(req.params.session_id as string);
+        
         await sesionEntrenamientoService.delete(session_id);
-        res.status(200).json({ message: 'Sesión de entrenamiento eliminada con éxito.' });
+        res.status(200).json({ message: 'Sesión de entrenamiento escondida con éxito.' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al eliminar la sesión de entrenamiento.' });
+        res.status(500).json({ error: 'Error al escondider la sesión de entrenamiento.' });
     }
 }
 
@@ -70,7 +71,6 @@ export async function editSesionEntrenamiento(req: Request, res: Response): Prom
         const updatedSession = await sesionEntrenamientoService.update(sessionId, sessionData);
       
         if (!updatedSession) {
-
             res.status(404).json({ error: 'Sesión de entrenamiento no encontrada.' });
             return;
         }

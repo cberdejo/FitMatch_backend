@@ -1,6 +1,7 @@
 import {  sesion_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 import { UpdateSessionData } from "../interfaces/update_sesion";
+import { registro_service } from "./registro_service";
 
 
 
@@ -13,17 +14,45 @@ export const sesionEntrenamientoService = {
                 session_name: session_name,
                 notes: notes,
                 order: order,
-                activa: true
+                activa: false,
             }
         })
         
     },
 
+    async delete(session_id:number, prismaContext?: any) {
+        //Solo puedo borrar si no hay ningún registro
+        const prisma = prismaContext || db; // Usa el contexto de transacción si se proporciona, de lo contrario usa la instancia global
+        const registros = await registro_service.getAllRegistersBySessionId(session_id, prisma); 
+       
+        if ( registros && registros.length > 0) {
+            return await this.hide(session_id, prisma);
+        }else {
+            try {
+            
+                return await prisma.sesion_de_entrenamiento.delete({
+                    where: { session_id: session_id },
+                });
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+        
+        
+    },
+    async hide (session_id: number,  prismaContext?: any) {
+        const prisma = prismaContext || db; // Usa el contexto de transacción si se proporciona, de lo contrario usa la instancia global
+        try {
 
-    async delete(session_id:any) {
-        return await db.sesion_de_entrenamiento.delete({
-            where: { session_id: parseInt(session_id) },
-        });
+            return await prisma.sesion_de_entrenamiento.update({
+                where: { session_id: session_id },
+                data: { activa: false },
+            });
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
     },
 
     async isSetIdInTrainingSession( session_id: number, set_id: number): Promise<boolean> {
@@ -54,16 +83,12 @@ export const sesionEntrenamientoService = {
     
     async update(sessionId: number, sessionData: UpdateSessionData): Promise<sesion_de_entrenamiento | null> {
         try {
+            let nuevaSesionId: number | null = null;
             const transaction = await db.$transaction(async (prisma) => {
-                // Actualiza primero la sesión de entrenamiento con los datos básicos proporcionados
-                const currentSession= await prisma.sesion_de_entrenamiento.update({
+                // Primero obtengo la sesión actual
+                const currentSession= await prisma.sesion_de_entrenamiento.findUnique({
                     where: { session_id: sessionId },
-                    data: {
-                        session_name: sessionData.session_name,
-                        session_date: sessionData.session_date,
-                        notes: sessionData.notes,
-                        order: sessionData.order
-                    },
+                    
                     include: {
                         ejercicios_detallados_agrupados: {
                             include: {
@@ -74,18 +99,19 @@ export const sesionEntrenamientoService = {
                                 },
                             }
                         }
-                    }
+                    } 
                 });
+                // si no existe no actualizo nada 
+                if (!currentSession) {
+                    return null;
+                }
 
-                const needsUpdate = checkIfUpdateIsNeeded(currentSession, sessionData);
+                const needsUpdate = checkIfUpdateIsNeeded(currentSession, sessionData); //en caso de que haya cambiado algun dato	
                 if ( needsUpdate) {
-                    // Hacer inactiva esa sesión
-                    await prisma.sesion_de_entrenamiento.update({
-                        where: { session_id: sessionId },
-                        data: { activa: false },
-                    })
+                    // Hará inactiva la sesión o la borrará si no tiene registros
+                    await  this.delete(sessionId, prisma); 
                     //Crear nueva sesión activa
-                    const sesion = await prisma.sesion_de_entrenamiento.create({
+                    const nuevaSesion = await prisma.sesion_de_entrenamiento.create({
                         data: {
                             template_id: currentSession.template_id,
                             session_name: currentSession.session_name,
@@ -95,13 +121,14 @@ export const sesionEntrenamientoService = {
                             activa: true
                         }
                     })
+                    nuevaSesionId = nuevaSesion.session_id;
 
 
                     // Reinsertar los grupos de ejercicios detallados y sus ejercicios detallados
                     for (const grupo of sessionData.ejercicios_detallados_agrupados!) {
                       await prisma.ejercicios_detallados_agrupados.create({
                             data: {
-                                session_id: sesion.session_id,
+                                session_id: nuevaSesion.session_id,
                                 order: grupo.order,
                                 ejercicios_detallados: {
                                     create: grupo.ejercicios_detallados.map(ejercicio => ({
@@ -132,10 +159,13 @@ export const sesionEntrenamientoService = {
                     }
                     
                 }
+                if (!nuevaSesionId) {
+                    return null;
+                }
 
                 // Retornar la sesión de entrenamiento actualizada con los nuevos grupos de ejercicios detallados (si se proporcionaron)
                 return prisma.sesion_de_entrenamiento.findUnique({
-                    where: { session_id: sessionId },
+                    where: { session_id: nuevaSesionId},
                     include: {
                         ejercicios_detallados_agrupados: {
                             include: {
@@ -150,9 +180,7 @@ export const sesionEntrenamientoService = {
         } catch (error) {
             console.error('Error al actualizar la sesión de entrenamiento:', error);
             throw error;
-        } finally {
-            await db.$disconnect();
-        }
+        } 
     },
 
 

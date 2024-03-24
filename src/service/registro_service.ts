@@ -169,6 +169,25 @@ export const registro_service = {
         }
     },
 
+    async getAllRegistersBySessionId(session_id: number, prismaContext?: any) {
+        try{
+            const prisma = prismaContext || db; // Usa el contexto de transacción si se proporciona, de lo contrario usa la instancia global
+                console.log("as");
+             return await prisma.registro_de_sesion.findMany({
+                where:{
+                    
+                    session_id: session_id
+                },
+                orderBy:{
+                    date: 'desc'
+                }
+                })
+        }catch (error) {
+            console.error(error);
+            throw error;
+        } 
+    },
+
     async getSessionWithRegistersByUserIdAndSessionId(user_id: number, session_id: number ) {
         try {
             return await db.sesion_de_entrenamiento.findUnique({
@@ -284,7 +303,8 @@ export const registro_service = {
             where:{
                 registro_de_sesion:{
                     register_session_id: register_session_id
-                }
+                }, 
+                
             }
         })
     }, 
@@ -374,6 +394,13 @@ export const registro_service = {
         return await db.registro_set.delete({
             where:{
                 register_set_id: register_set_id
+            }
+        })
+    },
+    async deleteRegisterSession(register_session_id: number) {
+        return await db.registro_de_sesion.delete({
+            where:{
+                register_session_id: register_session_id
             }
         })
     }

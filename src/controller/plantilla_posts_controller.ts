@@ -22,12 +22,21 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
         const userId: number | null = req.query.userId ? parseInt(req.query.userId as string) : null;
         const isPublic: boolean = req.query.isPublic !== 'false';
         const isHidden: boolean = req.query.isHidden === 'true';
-       
+
+                //filtros
+        const name: string | null = req.query.name ? req.query.name as string : null;
+
+        const experiences = req.query.experience ? (req.query.experience as string).split(',') : [];
+        const objectives = req.query.objective ? (req.query.objective as string).split(',') : [];   
+        const interests = req.query.interests ? (req.query.interests as string).split(',') : [];     
+        const  equipment = req.query.equipment ? (req.query.equipment as string).split(',') : [];
+        const duration = req.query.duration ? (req.query.duration as string).split(',') : [];
 
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = await plantillaService.getPlantillaPosts( userId, isPublic, isHidden, page, pageSize);
+        const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = 
+        await plantillaService.getPlantillaPosts( userId, isPublic, isHidden, page, pageSize, name, experiences, objectives, interests, equipment, duration);
        
         if (!plantillaPosts || plantillaPosts.length === 0) {
             res.status(204).send();

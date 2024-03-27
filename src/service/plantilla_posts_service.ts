@@ -5,50 +5,72 @@ import { PlantillaDeEntrenamientoConPromedio } from "../interfaces/posts";
 
 
 export const plantillaService = {
-    /**
-    * Retrieves a list of plantillaPost objects based on the provided user ID, page number,
-    * and page size.
-    *
-    * @param {number} user_id - The ID of the user.
-    * @param {number} page - The page number.
-    * @param {number} pageSize - The number of items per page.
-    * @return {Promise<plantillaPost[]>} A promise that resolves to an array of plantillaPost objects.
-    */
-    async getPlantillaPosts( userId: number | null, isPublic: boolean = false, isHidden: boolean = false, page: number, pageSize: number): Promise<PlantillaDeEntrenamientoConPromedio[]> {
-      try {
-          const offset = (page - 1) * pageSize;
-          const whereClause = userId ? { user_id: userId, public: isPublic, hidden: isHidden } : { public: isPublic, hidden: isHidden };
-
-        
-          const plantillaPosts = await db.plantillas_de_entrenamiento.findMany({
-              where: whereClause,
-              skip: offset,
-              take: pageSize,
-              include: {
-                  etiquetas: true,
-                  usuario: {
-                      select: {
-                          username: true,
-                      }
-                  }
-              }
-          });
-          
-       
-        const plantillasConPromedio = getAggregatedReviewsForTemplates(plantillaPosts);
-
-        return plantillasConPromedio;
-        
-     
-        
-      } catch (error) {
-          console.error(error);
-          throw error;
-      } finally {
-          db.$disconnect();
+  
+  async getPlantillaPosts(
+    userId: number | null,
+    isPublic: boolean = false,
+    isHidden: boolean = false,
+    page: number,
+    pageSize: number,
+    name: string | null,
+    experiences: string[],
+    objectives: string[],
+    interests: string[],
+    equipment: string[],
+    duration: string[]
+  ): Promise<PlantillaDeEntrenamientoConPromedio[]> {
+    try {
+      const offset = (page - 1) * pageSize;
+      
+      // Preparando la cláusula where inicial
+      let whereClause: any = {
+        public: isPublic,
+        hidden: isHidden,
+      };
+      
+      // Añadiendo filtro por userId si está presente
+      if (userId) whereClause.user_id = userId;
+      
+      // Añadiendo filtro por nombre si está presente
+      if (name) whereClause.template_name = { contains: name };
+  
+      // Añadiendo filtros para etiquetas si están presentes
+      if (experiences.length || objectives.length || interests.length || equipment.length || duration.length) {
+        whereClause.etiquetas = {
+          some: {
+            OR: [
+              ...experiences.map(experience => ({ experience: { equals: experience } })),
+              ...objectives.map(objective => ({ objectives: { equals: objective } })),
+              ...interests.map(interest => ({ interests: { equals: interest } })),
+              ...equipment.map(equip => ({ equipment: { equals: equip } })),
+              ...duration.map(dur => ({ duration: { equals: dur } })),
+            ],
+          },
+        };
       }
+  
+      const plantillaPosts = await db.plantillas_de_entrenamiento.findMany({
+        where: whereClause,
+        skip: offset,
+        take: pageSize,
+        include: {
+          etiquetas: true,
+          usuario: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      });
+  
+      const plantillasConPromedio = getAggregatedReviewsForTemplates(plantillaPosts);
+      return plantillasConPromedio;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   },
-
+  
   
 
 

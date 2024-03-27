@@ -8,6 +8,8 @@ import {
     verifyUsuarios,
     decodeToken,
     getUsuarioToken,
+    checkOtp,
+    sendOtp,
      } from '../controller/usuario_controller';
 import { upload } from '../config/cloudinary';
 import { validateCreateUsuario, validateGetUsuarioByEmail,  validateVerifyUsuarios } from '../validator/usuario_validators';
@@ -28,5 +30,7 @@ usuarioRouter.get('/usuarios/email/:email', validateGetUsuarioByEmail,  getUsuar
 usuarioRouter.post('/verificar', validateVerifyUsuarios, verifyUsuarios);
 usuarioRouter.get('/token/:token', decodeToken );
 
+usuarioRouter.post('/otp/check', checkOtp );
+usuarioRouter.post('/otp/send', sendOtp );
 
 export default usuarioRouter;

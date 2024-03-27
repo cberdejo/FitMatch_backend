@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import {
+  otpService,
   usuario_service
 } from '../service/usuario_service';
 
@@ -10,6 +11,8 @@ import { JwtPayload } from 'jsonwebtoken';
 import { deleteImageFromCloudinary, postImage } from '../config/cloudinary';
 import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
 import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
+import { codigo_otp } from '@prisma/client';
+import { sendOTPMessage } from '../config/mailer';
 
 
 
@@ -45,6 +48,8 @@ async function createUsuario(req: Request, res: Response) {
       res.status(500).json({ error });
   }
 }
+
+
 
 async function getUsuarioToken(req: Request, res: Response) {
   try {
@@ -106,15 +111,16 @@ async function editUsuario(req: Request, res: Response) {
         // Mantener la imagen actual si no hay una nueva imagen
         cloudinary_profile_picture = existingUser.profile_picture;
     }
+      console.log (password);
 
       // Comprobar todos los parámetros y enviar undefined si son nulos o iguales a los valores existentes
       const dataToEdit = {
         user_id,
         username: (username !== null && username !== existingUser.username) ? username : undefined,
         email: (email !== null && email !== existingUser.email) ? email : undefined,
-        password: (password !== null && !checkPassword(password, existingUser.password)) ? hashPassword(password) : undefined,
+        password: (password !== null && password != "") ? hashPassword(password) : undefined,
         profile_picture: (cloudinary_profile_picture !== null && cloudinary_profile_picture !== existingUser.profile_picture) ? cloudinary_profile_picture : undefined,
-        birth: (birth !== null && new Date(birth) !== existingUser.birth) ? new Date(birth) : undefined,
+        birth: (birth !== null && !isNaN(new Date(birth).getTime()) ) ? new Date(birth) : undefined,
         bio: (bio !== null && bio!= "" && bio !== existingUser.bio) ? bio : undefined,
         public: (isPublic !== null && isPublic !== existingUser.public) ? ((isPublic === 'true') ? true : false ) : undefined,
         system: (system !== null && system !== existingUser.system) ? system : undefined,
@@ -160,14 +166,15 @@ async function verifyUsuarios(req: Request, res: Response) {
     if (user === null) {
       res.status(401).json({ message: 'Credenciales incorrectas' });
     } else {
-      const passwordMatches =  checkPassword(plainPassword, user.password);
+      const passwordMatches = checkPassword(plainPassword, user.password);
       //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
       if (passwordMatches) {
-        // Crea un token JWT con la clave secreta+
-        let token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        // Crea un nuevo objeto sin la contraseña
+        const userWithoutPassword = { ...user, password: undefined };
 
-        token =  jwt.sign({ user: user }, process.env.JWT_SECRET!, { expiresIn: '1h' });
-        
+        let token = jwt.sign({ user: userWithoutPassword }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+        console.log(userWithoutPassword); // Asegúrate de que no incluya la contraseña
         res.status(200).json({ token });
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });
@@ -178,6 +185,7 @@ async function verifyUsuarios(req: Request, res: Response) {
     res.status(500).json(error);
   }
 }
+
 
 /**
  * Obtiene un usuario por su ID.
@@ -246,6 +254,63 @@ async function decodeToken(req: Request, res: Response) {
   }
 }
 
+async function checkOtp(req: Request, res: Response) {
+  try {
+    const otp = req.body.otp;
+    if (!otp) {
+      console.error ('Otp no recibido');
+      return res.status(400).json({ error: 'Otp no recibido' });
+    }
+    const otpObject: codigo_otp | null = await otpService.getOTPByValue(otp);
+
+    if (!otpObject) {
+      return res.status(400).json({ error: 'Otp no encontrado' });
+    }
+
+    if (otpObject.fecha_caducado < new Date()) {
+      return res.status(400).json({ error: 'Otp expirado' });
+    }
+
+    otpService.delete(otpObject.id);
+    return res.status(200).json({ message: 'Otp correcto' });
+
+  } catch (error) {
+    console.error('Error al verificar el OTP', error);
+    return res.status(500).json({ message: 'Error interno del servidor', error:error });
+  }
+}
+
+
+async function sendOtp(req: Request, res: Response) {
+  try {
+    const mail = req.body.mail;
+    if (!mail) {
+      console.error ('Mail no recibido');
+      return res.status(400).json({ error: 'mail no recibido' });
+    }
+    const newOtp:string = await generateOTP();
+    // Enviar correo
+    await sendOTPMessage(mail, newOtp); // Asumiendo que sendOTPMessage sea asíncrono
+
+    return res.status(200).json({ message: 'Otp enviado' });
+  } catch (error) {
+    console.error('Error al enviar OTP', error);
+    return res.status(500).json(error); // Asegúrate de retornar también en el catch
+  }
+}
+
+
+async function generateOTP(): Promise<string> {
+  // Genera un código OTP de 6 dígitos
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  const otpObject: codigo_otp|null = await otpService.getOTPByValue(otp.toString());
+  if (otpObject) { 
+    return  generateOTP(); //en caso de existir, probaría a generar otro
+  }
+
+  otpService.createOtp(otp.toString()); //se inserta en la base de datos
+  return otp.toString();
+}
 
 
 
@@ -258,5 +323,7 @@ export {
   getUsuarios,
   verifyUsuarios,
   decodeToken,
-  getUsuarioToken
+  getUsuarioToken,
+  checkOtp,
+  sendOtp
 }

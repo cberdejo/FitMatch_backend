@@ -8,6 +8,10 @@ import * as crypto from 'crypto';
  * @returns True si la contraseña coincide, False de lo contrario.
  */
  function checkPassword(plainPassword: string, hashedPassword: string): boolean {
+  if (plainPassword === undefined || hashedPassword === undefined) {
+    console.log('Password arguments missing');
+    throw new Error('Password arguments missing');
+  }
     const hashedPasswordInput = hashPassword(plainPassword);
     return hashedPassword === hashedPasswordInput;
   }

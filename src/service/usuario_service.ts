@@ -136,3 +136,45 @@ async edit(data: {
   }
 }
 
+export const otpService = {
+
+  async createOtp(value:string ) {
+    try {
+      const fechaActual = new Date();
+      // 3600000 milisegundos = 1 hora
+      const fechaCaducado = new Date(fechaActual.getTime() + 3600000);
+  
+      // Crear el OTP en la base de datos con la fecha de caducidad
+      return await db.codigo_otp.create({
+        data: { 
+          valor: value,
+          fecha_caducado: fechaCaducado
+         },
+      });
+    } catch (error) {
+      console.error('Error al crear OTP en la base de datos', error);
+      throw new Error('No se pudo crear el OTP');
+    }
+  }, 
+  async getOTPByValue(value: string) {
+    try {
+      return await db.codigo_otp.findUnique({
+        where: { valor: value },
+      });
+    } catch (error) {
+      console.error('Error al obtener OTP por valor de la base de datos', error);
+      throw new Error('No se pudo obtener el OTP');
+    }
+  },
+ async delete(otpId: number) {
+    try {
+      return await db.codigo_otp.delete({
+        where: { id: otpId },
+      });
+    } catch (error) {
+      console.error('Error al finalizar OTP en la base de datos', error);
+      throw new Error('No se pudo finalizar el OTP');
+    }
+  }
+}
+

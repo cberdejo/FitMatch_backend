@@ -215,7 +215,7 @@ model sesion_de_entrenamiento {
   activa                          Boolean                           @db.Bit(1)
   ejercicios_detallados_agrupados ejercicios_detallados_agrupados[]
   registro_de_sesion              registro_de_sesion[]
-  plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: NoAction, onUpdate: NoAction, map: "sesion_de_entrenamiento_ibfk_1")
+  plantillas_de_entrenamiento     plantillas_de_entrenamiento       @relation(fields: [template_id], references: [template_id], onDelete: Cascade, map: "sesion_de_entrenamiento_ibfk_1")
 
   @@index([template_id], map: "template_id")
 }
@@ -255,6 +255,7 @@ model usuario {
   system                      String                        @default("metrico") @db.VarChar(50)
   bio                         String?                       @db.Text
   public                      Boolean                       @default(true) @db.Bit(1)
+  height                      Float?
   comentario_review           comentario_review[]
   ejercicios                  ejercicios[]
   me_gusta_comentarios        me_gusta_comentarios[]
@@ -328,4 +329,10 @@ model medidas {
   usuario         usuario          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, map: "FK_medidas_usuario")
 
   @@index([user_id], map: "FK_medidas_usuario")
+}
+
+model codigo_otp {
+  id             Int      @id @default(autoincrement())
+  valor          String   @unique(map: "valor") @default("") @db.VarChar(50)
+  fecha_caducado DateTime @db.Timestamp(0)
 }

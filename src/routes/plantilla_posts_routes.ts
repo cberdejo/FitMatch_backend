@@ -5,6 +5,7 @@ import {
     getAllPlantillaPosts,
     deletePlantillaPost,
     getPlantillaPostById,
+    duplicatePlantillaPost,
 
 
 } from '../controller/plantilla_posts_controller';
@@ -26,7 +27,7 @@ trainer_postsRouter.get('/plantillaPosts/:template_id',  getPlantillaPostById);
 trainer_postsRouter.post('/plantillaPosts/', upload.single('picture'), validateCreatePlantillaPost, createPlantillaPost);
 
 
-
+trainer_postsRouter.post('/duplicatePlantilla', duplicatePlantillaPost)
 trainer_postsRouter.put('/plantillaPosts/:template_id', upload.single('picture'), validateEditPlantillaPost,  editPlantillaPosts); 
 trainer_postsRouter.delete('/plantillaPosts/:template_id',  deletePlantillaPost);
 

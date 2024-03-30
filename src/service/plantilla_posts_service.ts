@@ -155,6 +155,107 @@ async  postPlantilla(plantilla: {
       throw error;
     }
   },
+
+  async  duplicatePlantillaWithSessions(userId: number, templateId: number) {
+    return await db.$transaction(async (prisma) => {
+        // Obtener la plantilla original
+        const originalPlantilla = await prisma.plantillas_de_entrenamiento.findUnique({
+            where: { template_id: templateId },
+            include: { sesion_de_entrenamiento: { 
+              include: {
+                ejercicios_detallados_agrupados: {
+                  include:{
+                    ejercicios_detallados: {
+                      include: {
+                        sets_ejercicios_entrada: true
+                      }
+                    }
+                  }
+                }
+              }
+            }, etiquetas: true }, 
+        });
+        if (!originalPlantilla) {
+            throw new Error('Plantilla no encontrada');
+        }
+
+        // Duplicar la plantilla
+        const duplicatedPlantilla = await prisma.plantillas_de_entrenamiento.create({
+            data: {
+                user_id: userId, // nuevo user
+                template_name: originalPlantilla.template_name + ' (duplicada)',
+                description: originalPlantilla.description,
+            },
+        });
+
+        //Añadir las etiquetas 
+        if (originalPlantilla.etiquetas && originalPlantilla.etiquetas.length > 0) {
+          const etiquetasData = originalPlantilla.etiquetas.map(etiqueta => {
+              // Excluir `tag` y otros campos no deseados de la etiqueta original
+              const { tag_id, template_id, ...etiquetaData } = etiqueta;
+      
+              return {
+                  ...etiquetaData, // Usa los datos filtrados de la etiqueta
+                  template_id: duplicatedPlantilla.template_id, // Asocia la etiqueta a la nueva plantilla duplicada
+              };
+          });
+      
+          await prisma.etiquetas.createMany({
+              data: etiquetasData,
+          });
+      }
+      
+        // Duplicar cada sesión de entrenamiento asociada y sus relaciones
+        if (originalPlantilla.sesion_de_entrenamiento) {
+          for (const session of originalPlantilla.sesion_de_entrenamiento) {
+              // Excluir `session_id` para generar uno nuevo
+              const { session_id,template_id, ejercicios_detallados_agrupados, ...sessionData } = session;
+              const duplicatedSession = await prisma.sesion_de_entrenamiento.create({
+                  data: {
+                      ...sessionData,
+                      template_id: duplicatedPlantilla.template_id,
+                  },
+              });
+
+              // Duplicar ejercicios detallados agrupados y sus relaciones
+              for (const groupedExercise of session.ejercicios_detallados_agrupados) {
+                  const { grouped_detailed_exercised_id, session_id, ejercicios_detallados, ...groupedExerciseData } = groupedExercise;
+                  const duplicatedGroupedExercise = await prisma.ejercicios_detallados_agrupados.create({
+                      data: {
+                          ...groupedExerciseData,
+                          session_id: duplicatedSession.session_id,
+                      },
+                  });
+
+                  // Duplicar ejercicios detallados y sets de entrada
+                  for (const detailedExercise of groupedExercise.ejercicios_detallados) {
+                      const { detailed_exercise_id, grouped_detailed_exercised_id, sets_ejercicios_entrada, ...detailedExerciseData } = detailedExercise;
+                      const duplicatedDetailedExercise = await prisma.ejercicios_detallados.create({
+                          data: {
+                              ...detailedExerciseData,
+                              grouped_detailed_exercised_id: duplicatedGroupedExercise.grouped_detailed_exercised_id,
+                          },
+                      });
+
+                      // Duplicar sets de ejercicios de entrada
+                      for (const setEntry of detailedExercise.sets_ejercicios_entrada) {
+                          const { set_id, detailed_exercise_id, ...setEntryData } = setEntry;
+                          await prisma.sets_ejercicios_entrada.create({
+                              data: {
+                                  ...setEntryData,
+                                  detailed_exercise_id: duplicatedDetailedExercise.detailed_exercise_id,
+                              },
+                          });
+                      }
+                  }
+              }
+          }
+      }
+
+      return duplicatedPlantilla;
+  });
+},
+
   
   async update(template_id: number, plantilla: {
     template_name: string; 
@@ -238,44 +339,50 @@ async  postPlantilla(plantilla: {
 
     }, 
     async toggleHiddenCreada(template_id: number) {
-      const template = await db.plantillas_de_entrenamiento.findUnique({
-        where: { template_id: template_id },
-        include: {
-          sesion_de_entrenamiento: {
-            include: {
-              registro_de_sesion: true,
+      return await db.$transaction(async (prisma) => {
+        const template = await prisma.plantillas_de_entrenamiento.findUnique({
+          where: { template_id: template_id },
+          include: {
+            sesion_de_entrenamiento: {
+              include: {
+                registro_de_sesion: true,
+              }
             }
           }
+        });
+    
+        if (!template) {
+          return null; // O manejar el caso de que la plantilla no exista.
         }
-      });
-      if (template) {
-        const newHiddenValue = template.hidden ? false : true;
+    
+        // Determinar los nuevos valores basados en el estado actual.
+        const newHiddenValue = !template.hidden;
         const publicValue = newHiddenValue ? undefined : false;
-        const updatedTemplate = db.plantillas_de_entrenamiento.update({
+    
+        // Actualizar la plantilla.
+        const updatedTemplate = await prisma.plantillas_de_entrenamiento.update({
           where: { template_id },
-          data: { hidden: newHiddenValue , public: publicValue},
-        })
-
-        /*
-        En caso de que no haya ningún registro de un set en ninguna sesión de entrenamiento, se borrará de la tabla plantillas_de_entrenamiento
-        */
-
-        const shouldDeleteRutina = template.sesion_de_entrenamiento.every(
-          (sesion) => sesion.registro_de_sesion.length === 0
-        );
-
+          data: { hidden: newHiddenValue, public: publicValue },
+        });
+    
+        // Comprobar si se debe eliminar la plantilla.
+        const shouldDeleteRutina = template.sesion_de_entrenamiento.every(sesion => sesion.registro_de_sesion.length === 0);
+    
         if (shouldDeleteRutina) {
-          await db.plantillas_de_entrenamiento.delete({
+          await prisma.plantillas_de_entrenamiento.delete({
             where: { template_id: template.template_id },
           });
+    
+          return null; // O manejar el caso de eliminación de la plantilla.
         }
+    
         return updatedTemplate;
-       
-      }
-     
-      return null;
-    }, 
-
+      }).catch((error) => {
+        console.error('Error en toggleHiddenCreada:', error);
+        throw error; // O manejar el error de manera más específica.
+      });
+    }
+    
 }
  
 export const getAggregatedReviewsForTemplates = async (templates: plantillas_de_entrenamiento[]): Promise<PlantillaDeEntrenamientoConPromedio[]> => {

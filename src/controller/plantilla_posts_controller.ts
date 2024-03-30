@@ -76,13 +76,7 @@ export async function getPlantillaPostById(req: Request, res: Response): Promise
     }
 }
 
-/**
- * Creates a new plantilla post.
- *
- * @param {Request} req - The HTTP request object.
- * @param {Response} res - The HTTP response object.
- * @return {Promise<void>} A promise that resolves when the function is complete.
- */
+
 export async function createPlantillaPost(req: Request, res: Response): Promise<void> {
     try {
         const {template_name, description, etiquetas, user_id} = req.body;
@@ -114,13 +108,21 @@ export async function createPlantillaPost(req: Request, res: Response): Promise<
     }
 }
 
-/**
- * Edit the plantilla posts.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} A promise that resolves when the function is complete.
- */
+
+export async function duplicatePlantillaPost (req: Request, res: Response): Promise<void> {
+    try {
+        const userId = parseInt(req.body.user_id);
+        const templateId = parseInt(req.body.template_id);
+        
+        console.log (userId, templateId);
+        const duplicatedTemplate = await plantillaService.duplicatePlantillaWithSessions(userId, templateId);
+        res.status(201).json(duplicatedTemplate);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ocurrió un error al procesar la solicitud.' });
+    }
+}
+
 export async function editPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
         const template_id = parseInt(req.params.template_id);

@@ -4,12 +4,12 @@ import db  from "../config/database";
 
 export const exerciseService = {
 
-    async create(userId : number, name : string, description : string, muscle_group_id : number, material_id : number, video : string) {
+    async create(userId : number | null, name : string, description : string, muscle_group_id : number, material_id : number, video : string) {
         return await db.ejercicios.create({
             data: {
                 name: name,
                 description: description,
-                user_id: userId==1 ? null : userId,
+                user_id: userId,
                 muscle_group_id: muscle_group_id,
                 material_id: material_id,
                 video: video

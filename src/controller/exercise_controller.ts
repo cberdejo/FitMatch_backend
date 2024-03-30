@@ -127,14 +127,15 @@ export async function getExercisesByMaterial(req: Request, res: Response): Promi
 
 export async function createExercise(req: Request, res: Response): Promise<void> {
     try {
-        const userId = req.body;
-        const name = req.body;
-        const description = req.body;
-        const muscleGroupId = req.body;
-        const materialId = req.body; 
+        const userId = req.body.user_id;
+        const name = req.body.name;
+        const description = req.body.description;
+        const muscleGroupId = req.body.muscle_group_id;
+        const materialId = req.body.material_id;
+        const video = req.body.video;
 
 
-        const createdExercise = await exerciseService.create( userId, name, description, muscleGroupId, materialId);
+        const createdExercise = await exerciseService.create( userId, name, description, muscleGroupId, materialId, video);
         res.status(201).json(createdExercise);
     } catch (error) {
         console.error(error);

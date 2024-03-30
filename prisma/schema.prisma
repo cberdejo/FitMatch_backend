@@ -84,6 +84,7 @@ model etiquetas {
 model grupo_muscular {
   muscle_group_id Int          @id @default(autoincrement())
   name            String?      @unique(map: "name") @db.VarChar(50)
+  icon_name       String?      @db.VarChar(50)
   ejercicios      ejercicios[]
 }
 

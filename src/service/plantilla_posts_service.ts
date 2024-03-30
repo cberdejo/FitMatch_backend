@@ -8,8 +8,8 @@ export const plantillaService = {
   
   async getPlantillaPosts(
     userId: number | null,
-    isPublic: boolean = false,
-    isHidden: boolean = false,
+    isPublic: boolean | null,
+    isHidden: boolean | null,
     page: number,
     pageSize: number,
     name: string | null,
@@ -22,17 +22,16 @@ export const plantillaService = {
     try {
       const offset = (page - 1) * pageSize;
       
-      // Preparando la cláusula where inicial
-      let whereClause: any = {
-        public: isPublic,
-        hidden: isHidden,
-      };
+      // Preparando la cláusula where inicial, omitiendo campos que sean null
+      let whereClause: any = {};
+      if (isPublic !== null) whereClause.public = isPublic;
+      if (isHidden !== null) whereClause.hidden = isHidden;
       
       // Añadiendo filtro por userId si está presente
-      if (userId) whereClause.user_id = userId;
+      if (userId !== null) whereClause.user_id = userId;
       
       // Añadiendo filtro por nombre si está presente
-      if (name) whereClause.template_name = { contains: name };
+      if (name !== null) whereClause.template_name = { contains: name };
   
       // Añadiendo filtros para etiquetas si están presentes
       if (experiences.length || objectives.length || interests.length || equipment.length || duration.length) {
@@ -70,7 +69,6 @@ export const plantillaService = {
       throw error;
     }
   },
-  
   
 
 

@@ -23,11 +23,12 @@ export async function validateGetExercises(req: Request, res: Response, next: Ne
 }
 
 export async function validateCreateExercises(req: Request, res: Response, next: NextFunction) {
-    const userId = req.body;
-    const name = req.body;
+    const userId = req.body.user_id;
+    const name = req.body.name;
 
-    const muscleGroupId = req.body;
-    const materialId = req.body; 
+    const muscleGroupId = req.body.muscle_group_id;
+    const materialId = req.body.material_id; 
+    const video = req.body.video;
 
     if (!esNumeroValido(userId)) {
         res.status(400).json({ error: 'El ID del usuario debe ser un número' });
@@ -43,6 +44,16 @@ export async function validateCreateExercises(req: Request, res: Response, next:
     }
     if (!esNumeroValido(materialId)) {
         res.status(400).json({ error: 'El ID del material debe ser un número' });
+        return ;
+    }
+    if (!video) {
+        res.status(400).json({ error: 'El video del ejercicio no puede estar vacío.' });
+        return ;
+    }
+   
+    //check video is an url
+    if (!video.match(/^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/)) {
+        res.status(400).json({ error: 'El video debe ser una url de youtube' });
         return ;
     }
 

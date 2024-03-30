@@ -20,8 +20,10 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
 
         
         const userId: number | null = req.query.userId ? parseInt(req.query.userId as string) : null;
-        const isPublic: boolean = req.query.isPublic !== 'false';
-        const isHidden: boolean = req.query.isHidden === 'true';
+        const isPublic: boolean | null = req.query.isPublic == null ? null : req.query.isPublic !== 'false';
+        const isHidden: boolean | null = req.query.isHidden == null ? null : req.query.isHidden === 'true';
+        
+        
 
                 //filtros
         const name: string | null = req.query.name ? req.query.name as string : null;

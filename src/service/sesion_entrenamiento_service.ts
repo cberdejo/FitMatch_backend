@@ -2,6 +2,7 @@ import {  sesion_de_entrenamiento } from "@prisma/client";
 import db  from "../config/database";
 import { UpdateSessionData } from "../interfaces/update_sesion";
 import { registro_service } from "./registro_service";
+import { fetchCrearNotificaciones } from "../controller/notification_controller";
 
 
 
@@ -90,12 +91,15 @@ export const sesionEntrenamientoService = {
                     where: { session_id: sessionId },
                     
                     include: {
+                        registro_de_sesion: true,
+                        plantillas_de_entrenamiento: true,
                         ejercicios_detallados_agrupados: {
                             include: {
                                 ejercicios_detallados:{
                                     include: {
                                         ejercicios: true
                                     }
+                                    
                                 },
                             }
                         }
@@ -162,6 +166,11 @@ export const sesionEntrenamientoService = {
                 if (!nuevaSesionId) {
                     return null;
                 }
+
+                //Mandar notificaciones
+                const userIds: number[] = currentSession.registro_de_sesion?.map(registro => registro.user_id);
+                const mensaje  = `La sesión de entrenamiento '${currentSession.session_name}' de la plantilla '${currentSession.plantillas_de_entrenamiento.template_name}' ha sido actualizada.`;
+                await fetchCrearNotificaciones("UPDATED_SESSION", mensaje, userIds);
 
                 // Retornar la sesión de entrenamiento actualizada con los nuevos grupos de ejercicios detallados (si se proporcionaron)
                 return prisma.sesion_de_entrenamiento.findUnique({

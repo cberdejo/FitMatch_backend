@@ -28,7 +28,7 @@ model ejercicios {
   muscle_group_id       Int
   material_id           Int
   user_id               Int?
-  name                  String?                 @db.VarChar(255)
+  name                  String                  @db.VarChar(255)
   description           String?                 @db.Text
   video                 String?                 @db.VarChar(50)
   grupo_muscular        grupo_muscular          @relation(fields: [muscle_group_id], references: [muscle_group_id], onDelete: Cascade, map: "FK_ejercicios_grupo_muscular")
@@ -294,7 +294,7 @@ model notificacion {
   type            String   @db.VarChar(50)
   mensaje         String   @db.Text
   read            Boolean  @default(false) @db.Bit(1)
-  timestamp       DateTime @default(dbgenerated("(0)")) @db.Timestamp(0)
+  timestamp       DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
   usuario         usuario  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "FK_notificacion_usuario")
 
   @@index([user_id], map: "FK_notificacion_usuario")

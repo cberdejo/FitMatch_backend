@@ -168,6 +168,7 @@ async function verifyUsuarios(req: Request, res: Response) {
     } else {
       const passwordMatches = checkPassword(plainPassword, user.password);
       //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
+      
       if (passwordMatches) {
         // Crea un nuevo objeto sin la contraseña
         const userWithoutPassword = { ...user, password: undefined };

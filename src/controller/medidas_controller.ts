@@ -99,14 +99,41 @@ export async function createMedidas ( req : Request, res: Response){
     }
 }
 
+
+async function  deleteImagenesProgreso( measurement_id: number) {
+
+    const existingProgressPictures = await fotosProgresoService.getByMeasurementId(measurement_id);
+    //elimino imagenes actuales 
+    if (existingProgressPictures) {
+        for (const picture of existingProgressPictures) {
+            const publicImageId = getPublicIdFromUrl(picture.imagen);
+            // Eliminar la imagen existente
+            await deleteImageFromCloudinary(publicImageId);
+        }
+    }
+
+}
+
 export  async function deleteMedidas(req: Request, res: Response) {
     try {
         const id = parseInt(req.params.id);
+
+         
+        await deleteImagenesProgreso(id);
+      
         const deleted = await medidaService.deleteMedidas(id);
+
+        
+         
         if (!deleted) {
             res.status(404).json({ error: 'Medida no encontrada.' });
             return;
         }
+
+       
+          
+        
+
         res.status(200).json({ message: 'Medida eliminada correctamente.' });
     } catch (error) {
         console.error(error);
@@ -156,15 +183,8 @@ export async function updateMedidas(req: Request, res: Response) {
         const pictures = req.files;
         if (updated && pictures) {
             let cloudinary_picture;
-            const existingProgressPictures = await fotosProgresoService.getByMeasurementId(updated.measurement_id);
             //elimino imagenes actuales 
-            if (existingProgressPictures) {
-                for (const picture of existingProgressPictures) {
-                    const publicImageId = getPublicIdFromUrl(picture.imagen);
-                    // Eliminar la imagen existente
-                    await deleteImageFromCloudinary(publicImageId);
-                }
-            }
+            deleteImagenesProgreso(updated.measurement_id);
             //independientemente de si existían fotos anteriormente o no, debo subir las nuevas 
             for (const picture of pictures as Express.Multer.File[]) {
                 cloudinary_picture = await postImage(picture);

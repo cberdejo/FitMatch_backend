@@ -3,6 +3,8 @@ import { commentService, likeCommentService, likeReviewService, reviewService, }
 import {  usuario_service } from '../service/usuario_service';
 import { me_gusta_comentarios, reviews, usuario } from '@prisma/client';
 import { filtroReview } from '../interfaces/filtros';
+import { fetchCrearNotificaciones } from './notification_controller';
+import { plantillaService } from '../service/plantilla_posts_service';
 
 
 
@@ -24,13 +26,7 @@ async function getReviewsByTemplateId(req: Request, res: Response) {
     }
 }
 
-/**
- * Like a review.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} A promise that resolves to nothing.
- */
+
 async function likeReview(req: Request, res: Response) {
     try {
         const { reviewId, userId } = req.body;
@@ -41,6 +37,19 @@ async function likeReview(req: Request, res: Response) {
           like = await likeReviewService.dislike(likeExistente.liked_review_id);
         }else{
           like = await likeReviewService.like(reviewId, userId);
+          //Notificar al dueño de la review que se le ha mandado like 
+          const userGivingLike = await usuario_service.getById(userId);
+          const reviewInfo = await reviewService.getById(reviewId);
+          if (userGivingLike && reviewInfo) {
+              
+              const userReview = await usuario_service.getById(reviewInfo.user_id);
+              if (userReview) {
+                  
+                const notificationMessage = `${userGivingLike.username} le ha dado like a tu review`;
+                await fetchCrearNotificaciones('LIKE_REVIEW', notificationMessage, [reviewInfo.user_id]);
+            
+                }
+            }
         }
         res.status(200).json(like);
     } catch (error) {
@@ -60,7 +69,17 @@ async function likeComment(req: Request, res: Response) {
           like = await likeCommentService.dislike(likeExistente.liked_comment_id);
         }else{
           like = await likeCommentService.like(commentId, userId);
-          
+        
+           // Obtener la información del usuario que da like
+           const userGivingLike = await usuario_service.getById(userId);
+           const commentInfo = await commentService.getById(commentId);
+
+           if (userGivingLike && commentInfo) {
+               // Notificar al autor del comentario
+               const notificationMessage = `${userGivingLike.username} le ha dado like a tu comentario`;
+               // Supongamos que `commentInfo.user_id` contiene el ID del autor del comentario
+               await fetchCrearNotificaciones('LIKE_COMMENT', notificationMessage, [commentInfo.user_id]);
+           }
         }
         if (!like) {
             res.status(400).json({ error: 'like no creado' });
@@ -73,13 +92,7 @@ async function likeComment(req: Request, res: Response) {
 }
 
 
-/**
- * Adds a review to the system.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} - A Promise that resolves with no value.
- */
+
 async function addReview(req: Request, res: Response) {
     try {
         const { templateId, userId, rating, reviewContent } = req.body;
@@ -102,6 +115,17 @@ async function addReview(req: Request, res: Response) {
             ...review
 
         }
+
+        //Mandar notificación al autor del templateId, que se ha hecho una reseña 
+         const template = await plantillaService.getById(templateId);
+        if (template){
+                // Notificar al autor del template sobre la nueva review
+            const notificationMessage = `${user.username} ha realizado una nueva review en tu plantilla '${template.template_name}'`;
+            await fetchCrearNotificaciones('NEW_REVIEW', notificationMessage, [template.user_id]);
+        }
+    
+ 
+
         res.status(200).json(reviewExtended);
 
     } catch (error) {
@@ -110,13 +134,6 @@ async function addReview(req: Request, res: Response) {
     }
 }
 
-/**
- * Deletes a review.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} Returns a promise that resolves when the review is deleted.
- */
 async function deleteReview (req: Request, res: Response) {
     try {
         const reviewId = parseInt(req.params.id);
@@ -128,17 +145,15 @@ async function deleteReview (req: Request, res: Response) {
     }
 }
 
-/**
- * Handles the answering of a review.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} A promise that resolves when the answer is posted.
- */
+
 async function answerReview(req: Request, res: Response) {
     try{
         const { userId, reviewId, answer } = req.body;
         const comment = await commentService.create(reviewId, userId, answer);
+        if (!comment) {
+            res.status(400).json({ error: 'Respuesta no pudo ser creada.' });
+            return;
+        }
 
         const user = await usuario_service.getById(userId);
         if (!user) {
@@ -150,6 +165,17 @@ async function answerReview(req: Request, res: Response) {
             profile_picture: user.profile_picture,
             ...comment
         }  
+
+        //NOTIFICACION
+        const review = await reviewService.getById(reviewId);
+        if (!review) {
+            res.status(400).json({ error: 'Reseña no encontrada' });
+            return;
+        }
+
+        // Envío de notificación al autor de la reseña
+        const notificationMessage = `${user.username} ha respondido a tu reseña`;
+        await fetchCrearNotificaciones('REVIEW_RESPONSE', notificationMessage, [review.user_id]);
         
         res.status(200).json(extendedComment);
     }catch(error){
@@ -161,13 +187,6 @@ async function answerReview(req: Request, res: Response) {
 
 
 
-/**
- * Deletes a comment.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} A promise that resolves with no value.
- */
 async function deleteComment(req: Request, res: Response) {
     try{
         const commentId = parseInt(req.params.id);

@@ -114,7 +114,6 @@ export async function duplicatePlantillaPost (req: Request, res: Response): Prom
         const userId = parseInt(req.body.user_id);
         const templateId = parseInt(req.body.template_id);
         
-        console.log (userId, templateId);
         const duplicatedTemplate = await plantillaService.duplicatePlantillaWithSessions(userId, templateId);
         res.status(201).json(duplicatedTemplate);
     } catch (error) {

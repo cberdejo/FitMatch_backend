@@ -43,8 +43,7 @@ export async function createMedidas ( req : Request, res: Response){
         chest = fromInchesToCm(chest);
         leftForearm = fromInchesToCm(leftForearm);
         rightForearm = fromInchesToCm(rightForearm);
-
-    }
+    } 
 
     const newMedida : medidaCreacion = { 
         user_id: userId,
@@ -103,14 +102,18 @@ export async function createMedidas ( req : Request, res: Response){
 async function  deleteImagenesProgreso( measurement_id: number) {
 
     const existingProgressPictures = await fotosProgresoService.getByMeasurementId(measurement_id);
-    //elimino imagenes actuales 
+    //elimino imagenes actuales de cloudinary
     if (existingProgressPictures) {
+
         for (const picture of existingProgressPictures) {
             const publicImageId = getPublicIdFromUrl(picture.imagen);
             // Eliminar la imagen existente
             await deleteImageFromCloudinary(publicImageId);
         }
     }
+
+    //elimino de la bbdd
+        await fotosProgresoService.deleteByMeasurementId(measurement_id);
 
 }
 
@@ -123,7 +126,8 @@ export  async function deleteMedidas(req: Request, res: Response) {
       
         const deleted = await medidaService.deleteMedidas(id);
 
-        
+        deleteImagenesProgreso(deleted.measurement_id);
+
          
         if (!deleted) {
             res.status(404).json({ error: 'Medida no encontrada.' });
@@ -146,17 +150,37 @@ export async function updateMedidas(req: Request, res: Response) {
         const id = parseInt(req.params.id);
              
     const userId  = parseInt(req.body.user_id);
-    const weight = toDouble(req.body.weight);
-    const rightArm = toDouble(req.body.right_arm);
-    const leftArm = toDouble(req.body.left_arm);
-    const rightLeg = toDouble(req.body.upper_right_leg);
-    const leftLeg = toDouble(req.body.upper_left_leg);  
-     const neck = toDouble(req.body.neck);
-     const shoulders = toDouble(req.body.shoulders);
-     const waist = toDouble(req.body.waist);
-    const leftCalve = toDouble(req.body.left_calve);
-    const rightCalve = toDouble(req.body.right_calve);
-    const chest = toDouble(req.body.chest);
+    let weight = toDouble(req.body.weight);
+    let rightArm = toDouble(req.body.right_arm);
+    let leftArm = toDouble(req.body.left_arm);
+    let rightLeg = toDouble(req.body.upper_right_leg);
+    let leftLeg = toDouble(req.body.upper_left_leg);  
+    let neck = toDouble(req.body.neck);
+    let shoulders = toDouble(req.body.shoulders);
+    let waist = toDouble(req.body.waist);
+    let leftCalve = toDouble(req.body.left_calve);
+    let rightCalve = toDouble(req.body.right_calve);
+    let chest = toDouble(req.body.chest);
+    let leftForearm = toDouble(req.body.left_forearm);
+    let rightForearm = toDouble(req.body.right_forearm);
+
+    const weightSystem = await usuario_service.getWeightSystemByUserId(userId);
+
+    if (weightSystem==='imperial'){
+        weight = fromLbsToKg(weight);
+        rightArm = fromInchesToCm(rightArm);
+        leftArm = fromInchesToCm(leftArm);
+        rightLeg = fromInchesToCm(rightLeg);
+        leftLeg = fromInchesToCm(leftLeg);
+        neck = fromInchesToCm(neck);
+        shoulders = fromInchesToCm(shoulders);
+        waist = fromInchesToCm(waist);
+        leftCalve = fromInchesToCm(leftCalve);
+        rightCalve = fromInchesToCm(rightCalve);
+        chest = fromInchesToCm(chest);
+        leftForearm = fromInchesToCm(leftForearm);
+        rightForearm = fromInchesToCm(rightForearm);
+    } 
 
     const newMedida : medidaCreacion = { 
         user_id: userId,
@@ -170,6 +194,8 @@ export async function updateMedidas(req: Request, res: Response) {
         waist: waist,
         left_calve: leftCalve,
         right_calve: rightCalve,
+        left_forearm: leftForearm,
+        right_forearm: rightForearm,
         chest: chest, 
 
     };
@@ -181,7 +207,7 @@ export async function updateMedidas(req: Request, res: Response) {
         }
 
         const pictures = req.files;
-        if (updated && pictures) {
+        if (pictures) {
             let cloudinary_picture;
             //elimino imagenes actuales 
             deleteImagenesProgreso(updated.measurement_id);

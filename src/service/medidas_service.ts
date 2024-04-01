@@ -87,5 +87,18 @@ export const fotosProgresoService = {
             console.error(error);
             throw new Error('Ocurrio un error al procesar la solicitud.');
         }
+    },
+
+    async deleteByMeasurementId(measurement_id:number) {
+        try {
+            return await db.fotos_progreso.deleteMany({
+                where: {
+                    measurement_id: measurement_id
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            throw new Error('Ocurrio un error al procesar la solicitud.');
+        }
     }
 }

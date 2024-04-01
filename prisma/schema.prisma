@@ -155,7 +155,6 @@ model registro_set {
   weight                  Float?
   time                    Float?
   timestamp               DateTime                @default(dbgenerated("(now())")) @db.Timestamp(0)
-  video                   String?                 @db.VarChar(50)
   registro_de_sesion      registro_de_sesion?     @relation(fields: [register_session_id], references: [register_session_id], onDelete: Cascade, map: "FK_registro_set_registro_de_sesion")
   sets_ejercicios_entrada sets_ejercicios_entrada @relation(fields: [set_id], references: [set_id], onDelete: Cascade, map: "FK_registro_set_sets_ejercicios_entrada")
 

@@ -8,34 +8,27 @@ import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 
-/**
- * Retrieves all plantilla posts.
- *
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @return {Promise<void>} A promise that resolves when the function completes.
- */
 export async function getAllPlantillaPosts(req: Request, res: Response): Promise<void> {
     try {
 
         
-        const userId: number | null = req.query.userId ? parseInt(req.query.userId as string) : null;
-        const isPublic: boolean | null = req.query.isPublic == null ? null : req.query.isPublic !== 'false';
-        const isHidden: boolean | null = req.query.isHidden == null ? null : req.query.isHidden === 'true';
+        const userId: number | null = req.body.userId ? parseInt(req.body.userId as string) : null;
+        const isPublic: boolean | null = req.body.isPublic == null ? null : req.body.isPublic !== 'false';
+        const isHidden: boolean | null = req.body.isHidden == null ? null : req.body.isHidden === 'true';
         
         
 
                 //filtros
-        const name: string | null = req.query.name ? req.query.name as string : null;
+        const name: string | null = req.body.name ? req.body.name as string : null;
 
-        const experiences = req.query.experience ? (req.query.experience as string).split(',') : [];
-        const objectives = req.query.objective ? (req.query.objective as string).split(',') : [];   
-        const interests = req.query.interests ? (req.query.interests as string).split(',') : [];     
-        const  equipment = req.query.equipment ? (req.query.equipment as string).split(',') : [];
-        const duration = req.query.duration ? (req.query.duration as string).split(',') : [];
+        const experiences = req.body.experience ? (req.body.experience as string).split(',') : [];
+        const objectives = req.body.objective ? (req.body.objective as string).split(',') : [];   
+        const interests = req.body.interests ? (req.body.interests as string).split(',') : [];     
+        const  equipment = req.body.equipment ? (req.body.equipment as string).split(',') : [];
+        const duration = req.body.duration ? (req.body.duration as string).split(',') : [];
 
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const page = parseInt(req.body.page as string) || 1;
+        const pageSize = parseInt(req.body.pageSize as string) || 10;
 
         const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = 
         await plantillaService.getPlantillaPosts( userId, isPublic, isHidden, page, pageSize, name, experiences, objectives, interests, equipment, duration);

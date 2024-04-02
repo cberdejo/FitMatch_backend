@@ -21,7 +21,7 @@ const trainer_postsRouter: Router = express.Router();
 
 
 
-trainer_postsRouter.get('/plantillaPosts/',validateGetPlantillaPosts,  getAllPlantillaPosts);
+trainer_postsRouter.post('/plantillaPosts/',validateGetPlantillaPosts,  getAllPlantillaPosts);
 trainer_postsRouter.get('/plantillaPosts/:template_id',  getPlantillaPostById);
 
 trainer_postsRouter.post('/plantillaPosts/', upload.single('picture'), validateCreatePlantillaPost, createPlantillaPost);

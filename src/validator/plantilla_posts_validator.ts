@@ -28,9 +28,9 @@ import {esNumeroValido } from '../utils/funciones_auxiliares_validator';
 export async function validateGetPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         
-        const userId = req.query.userId ? parseInt(req.query.userId as string) : null;
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const userId = req.body.userId ? parseInt(req.body.userId as string) : null;
+        const page = parseInt(req.body.page as string) || 1;
+        const pageSize = parseInt(req.body.pageSize as string) || 10;
 
      
         if (userId != null && !esNumeroValido(userId) ){

@@ -126,16 +126,17 @@ export async function getExercisesByMaterial(req: Request, res: Response): Promi
     }
 }
 
-export async function createExercise(req: Request, res: Response): Promise<void> {
+export async function  createExercise(req: Request, res: Response): Promise<void> {
     try {
-        let userId = req.body.user_id;
-        const name = req.body.name;
-        const description = req.body.description;
-        const muscleGroupId = req.body.muscle_group_id;
-        const materialId = req.body.material_id;
-        const video = req.body.video;
+        let userId:number | null = req.body.user_id;
+        const name:string = req.body.name;
+        const description:string = req.body.description;
+        const muscleGroupId:number = req.body.muscle_group_id;
+        const materialId:number = req.body.material_id;
+        const video:string = req.body.video;
 
-        const user = await usuario_service.getById(userId);
+      
+        const user = await usuario_service.getById(userId!);
         if (!user) { 
             res.status(400).json({ error: 'Usuario no encontrado' });
             return;
@@ -152,6 +153,21 @@ export async function createExercise(req: Request, res: Response): Promise<void>
         console.error(error);
         res.status(500).json({ error: 'Error al crear el ejercicio' });
     }
+}
+
+export async function deleteExercise( req: Request, res: Response): Promise<void> {
+    try {
+        const id = parseInt(req.params.id);
+        
+
+        await exerciseService.delete(id); 
+
+        res.status(200).json({ message: 'Ejercicio eliminado correctamente' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar el ejercicio' });
+    }
+
 }
 
 export async function getGroupedDetailedExercises(req: Request, res: Response): Promise<void> {

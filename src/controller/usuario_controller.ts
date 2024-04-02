@@ -175,7 +175,6 @@ async function verifyUsuarios(req: Request, res: Response) {
 
         let token = jwt.sign({ user: userWithoutPassword }, process.env.JWT_SECRET!, { expiresIn: '1h' });
 
-        console.log(userWithoutPassword); // Asegúrate de que no incluya la contraseña
         res.status(200).json({ token });
       } else {
         res.status(401).json({ message: 'Credenciales incorrectas' });

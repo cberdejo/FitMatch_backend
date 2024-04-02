@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { createExercise, createGroupedDetailedExercises, getAllExercises, getAllMaterials, getAllMuscleGroups, getAllTypesRegisters, getExercisesByMaterial, getExercisesByMuscleGroup, getGroupedDetailedExercises, getMaterialsById, getMuscleGroupsById } from '../controller/exercise_controller';
+import { createExercise, createGroupedDetailedExercises, deleteExercise, getAllExercises, getAllMaterials, getAllMuscleGroups, getAllTypesRegisters, getExercisesByMaterial, getExercisesByMuscleGroup, getGroupedDetailedExercises, getMaterialsById, getMuscleGroupsById } from '../controller/exercise_controller';
 import { paramIdValidation } from '../validator/shared_validator';
 import { validateCreateExercises, validateGetExercises } from '../validator/exercise_validator';
 
@@ -21,6 +21,7 @@ router.get ('/ejercicios/grupoMuscular/:muscle_group',  getExercisesByMuscleGrou
 router.get('/ejercicios/material/:material', getExercisesByMaterial);
 
 router.post('/ejercicios',validateCreateExercises, createExercise );
+router.delete('/ejercicios/:id',  deleteExercise);
 
 router.get('/ejerciciosDetalladosAgrupados/:session_id', getGroupedDetailedExercises  );
 router.post('/ejerciciosDetalladosAgrupados/', createGroupedDetailedExercises  );

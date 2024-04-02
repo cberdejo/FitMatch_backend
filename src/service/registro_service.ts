@@ -172,7 +172,6 @@ export const registro_service = {
     async getAllRegistersBySessionId(session_id: number, prismaContext?: any) {
         try{
             const prisma = prismaContext || db; // Usa el contexto de transacción si se proporciona, de lo contrario usa la instancia global
-                console.log("as");
              return await prisma.registro_de_sesion.findMany({
                 where:{
                     

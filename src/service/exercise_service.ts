@@ -17,6 +17,13 @@ export const exerciseService = {
         })
         
     },
+    async delete(exercise_id: number) {
+        return await db.ejercicios.delete({
+            where: {
+                exercise_id: exercise_id
+            }
+        })
+    },
     async getAll() {
         return await db.ejercicios.findMany({   
         })

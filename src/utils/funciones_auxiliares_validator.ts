@@ -5,7 +5,7 @@
 
 // Función auxiliar para validar si un valor es un número válido
 export function esNumeroValido(valor: any) {
-    return !isNaN(valor) && valor > 0;
+    return valor && !isNaN(valor) && valor > 0;
 }
 
 export function esFechaValida(fecha: any): boolean {

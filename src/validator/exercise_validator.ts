@@ -32,32 +32,36 @@ export async function validateCreateExercises(req: Request, res: Response, next:
 
     if (!esNumeroValido(userId)) {
         res.status(400).json({ error: 'El ID del usuario debe ser un número' });
+        console.error('El ID del usuario debe ser un número', userId);
         return ;
     }
     if (!name) {
         res.status(400).json({ error: 'El nombre del ejercicio no puede estar vacío.' });
+        console.error('El nombre del ejercicio no puede estar vacío.', name);
         return ;
     }
     if (!esNumeroValido(muscleGroupId)) {
         res.status(400).json({ error: 'El ID del grupo muscular debe ser un número' });
+        console.error('El ID del grupo muscular debe ser un número', muscleGroupId);
         return ;
     }
     if (!esNumeroValido(materialId)) {
         res.status(400).json({ error: 'El ID del material debe ser un número' });
+        console.error('El ID del material debe ser un número', materialId);
         return ;
     }
-    if (!video) {
-        res.status(400).json({ error: 'El video del ejercicio no puede estar vacío.' });
-        return ;
-    }
+
    
     //check video is an url
-    if (!video.match(/^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/)) {
+    if ( video &&!video.match(/^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$/)) {
         res.status(400).json({ error: 'El video debe ser una url de youtube' });
+        console.error('El video debe ser una url de youtube', video);
         return ;
     }
 
     return next();
 
 }
+
+
   

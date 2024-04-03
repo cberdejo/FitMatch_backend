@@ -342,16 +342,22 @@ export const registro_service = {
     },
 
     async updateRegisterSet(register_set_id: number, reps?: number, weight?: number, time?: number) {
-        return await db.registro_set.update({
-            where:{
-                register_set_id: register_set_id
-            }, 
-            data:{
-                reps: reps,
-                weight: weight,
-                time: time
-            }
-        })
+        try {
+            return await db.registro_set.update({
+                where:{
+                    register_set_id: register_set_id
+                }, 
+                data:{
+                    reps: reps,
+                    weight: weight,
+                    time: time
+                }
+            })
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+       
     },
     async  terminarRegistroDeSesion(register_session_id: number) {
         try {

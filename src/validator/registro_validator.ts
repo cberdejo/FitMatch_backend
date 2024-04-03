@@ -64,31 +64,46 @@ export async function validateCreateRegistro(req: Request, res: Response, next: 
     next();
 }
 export async function validateAddRegistroSet(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { register_session_id,  set_id, } = req.body;
+    const { user_id, register_session_id, set_id } = req.body;
 
-    if (!esNumeroValido(register_session_id)) {
-        res.status(400).json({ error: 'El user_id es obligatorio y debe ser un número válido.' });
+    // Verifica si alguno de los parámetros se proporciona, entonces ambos deben ser proporcionados y válidos
+    if ( register_session_id || set_id) {
+      
+
+        if (!esNumeroValido(register_session_id) ) {
+             console.error('El register_session_id debe ser un número válido y es obligatorio si se proporcionan user_id o set_id.');
+            res.status(400).json({ error: 'register_session_id debe ser un número válido y es obligatorio si se proporcionan user_id o set_id.' });
+            return;
+        }
+
+        if (!esNumeroValido(set_id) ) {
+             console.error('El set_id debe ser un número válido y es obligatorio si se proporcionan user_id o register_session_id.');
+            res.status(400).json({ error: 'set_id debe ser un número válido y es obligatorio si se proporcionan user_id o register_session_id.' });
+            return;
+        }
+
+        // Si ambos existen y son válidos, verifica la existencia de los registros asociados
+        const existingRegisterSession = await registro_service.getRegisterSessionById(register_session_id);
+        if (!existingRegisterSession) {
+            console.error('La sesión de registro proporcionada no existe.');
+            res.status(400).json({ error: 'La sesión de registro proporcionada no existe.' });
+            return;
+        }
+
+        const isSetInSession = await sesionEntrenamientoService.isSetIdInTrainingSession(existingRegisterSession.session_id, set_id);
+        if (!isSetInSession) {
+            console.error('El set_id no pertenece a la sesión de entrenamiento proporcionada.');
+            res.status(400).json({ error: 'El set_id no pertenece a la sesión de entrenamiento proporcionada.' });
+            return;
+        }
+    }
+
+    if (!esNumeroValido(user_id)){
+        console.error('user_id es obligatorio y debe ser un número válido');
+        res.status(400).json({ error: 'user_id es obligatorio y debe ser un número válido'  });
         return;
     } 
-    if (!esNumeroValido(set_id)) {
-        res.status(400).json({ error: 'El set_id es obligatorio y debe ser un número válido.' });
-        return;
-    }
-
-    const existingRegisterSession= await registro_service.getRegisterSessionById(register_session_id);
-    if (!existingRegisterSession) {
-        res.status(400).json({ error: 'La sesión de registro no existe.' });
-        return;
-    }
-    const isSetInSession: boolean = await sesionEntrenamientoService.isSetIdInTrainingSession( existingRegisterSession.session_id,set_id);
-
-
-    if (isSetInSession==false) {
-        res.status(400).json({ error: 'El set_id no pertenece a la sesión de entrenamiento.' });
-        return;
-    }
 
     next();
-
 }
 

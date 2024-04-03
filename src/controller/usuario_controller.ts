@@ -128,7 +128,6 @@ async function editUsuario(req: Request, res: Response) {
       };
   
       const user = await usuario_service.edit(dataToEdit);
-      console.log(user);
       res.status(201).json(user);
     console.log("usuario editado");
   } catch (error) {

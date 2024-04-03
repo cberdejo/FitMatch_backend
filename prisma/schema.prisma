@@ -255,7 +255,6 @@ model usuario {
   system                      String                        @default("metrico") @db.VarChar(50)
   bio                         String?                       @db.Text
   public                      Boolean                       @default(true) @db.Bit(1)
-  height                      Float?
   comentario_review           comentario_review[]
   ejercicios                  ejercicios[]
   me_gusta_comentarios        me_gusta_comentarios[]

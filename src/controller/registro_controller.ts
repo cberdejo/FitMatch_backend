@@ -108,7 +108,6 @@ export async function createRegisterSession(req: Request, res: Response) {
 export async function addRegisterSet(req: Request, res: Response) {
     try {
       const {
-        create,
         user_id,
         register_session_id,
         register_set_id,
@@ -118,26 +117,31 @@ export async function addRegisterSet(req: Request, res: Response) {
         time,
       } = req.body;
   
-      const canUpdate = register_set_id !== undefined && (reps !== null || weight !== null || time !== null);
-      const canCreate = create !== undefined && create === true;
+      const canUpdate = register_set_id !== undefined;
+      const canCreate = user_id !== undefined && register_session_id != undefined && set_id != undefined;
   
-      const existingRegisterSet = await registro_service.getRegisterSetByRegisterSessionIdAndSetId(user_id!, register_session_id!, set_id!);
       const weightSystem = await usuario_service.getWeightSystemByUserId(user_id!);
-      if (existingRegisterSet && canUpdate) {
-          const updatedWeight = weightSystem === 'imperial' ? weight / 2.20462 : weight;
-        const updatedRegisterSet = await registro_service.updateRegisterSet(register_set_id!, reps, updatedWeight, time);
-        return res.status(200).json(updatedRegisterSet);
-      } else if (!existingRegisterSet || canCreate) {
 
-        const newWeight = weightSystem === 'imperial' ? weight / 2.20462 : weight; 
+      if ( canUpdate) {
+        const updatedWeight = weightSystem === 'imperial' ? weight / 2.20462 : weight;
+        const updatedRegisterSet = await registro_service.updateRegisterSet(register_set_id, reps, updatedWeight, time);
+        return res.status(200).json(updatedRegisterSet);
+      } else if (canCreate) { 
+        //Antes de crear un registro comprobamos que no exista
+        // const existingRegisterSet = await registro_service.getRegisterSetByRegisterSessionIdAndSetId(user_id, register_session_id, set_id);
+            const newWeight = weightSystem === 'imperial' ? weight / 2.20462 : weight; 
        
-        const newRegisterSet = await registro_service.createRegisterSet(register_session_id!, set_id!, 
-            reps==0 ? undefined : reps,
-            newWeight==0 ? undefined : newWeight,
-            time ==0 ? undefined : time);
-        return res.status(200).json(newRegisterSet);
+            const newRegisterSet = await registro_service.createRegisterSet(register_session_id, set_id, 
+                reps==0 ? undefined :  reps,
+                newWeight==0 ? undefined : (weightSystem === 'imperial' ? weight / 2.20462 : weight),
+                time ==0 ? undefined : time);
+            return res.status(200).json(newRegisterSet);
+        
+
+       
       } else {
-        return res.status(400).json({ error: 'No se proporcionaron datos válidos para actualizar el registro.' });
+        console.error('No se proporcionaron datos válidos para actualizar el registro.')
+        return res.status(400).json({ error: 'No se proporcionaron datos válidos para actualizar el registro.' } );
       }
     } catch (error) {
       console.error(error);

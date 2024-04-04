@@ -255,6 +255,7 @@ model usuario {
   system                      String                        @default("metrico") @db.VarChar(50)
   bio                         String?                       @db.Text
   public                      Boolean                       @default(true) @db.Bit(1)
+  banned                      Boolean                       @default(false) @db.Bit(1)
   comentario_review           comentario_review[]
   ejercicios                  ejercicios[]
   me_gusta_comentarios        me_gusta_comentarios[]
@@ -340,6 +341,7 @@ model bloqueos {
   id          Int      @id @default(autoincrement())
   ip_address  String   @db.VarChar(50)
   fecha_hasta DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  timestamp   DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
 }
 
 model logs {

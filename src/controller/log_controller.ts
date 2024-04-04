@@ -2,19 +2,23 @@ import {Request, Response} from 'express';
 import { getBloqueosService, verLogsService } from '../service/log_service';
 
 
-async function verLogs(_req: Request, res: Response) {
+async function verLogs(req: Request, res: Response) {
     try {
-        const logs = await verLogsService();
+        const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
+
+        const logs = await verLogsService(ipFiltro);
         res.status(200).json(logs);
     } catch (error) {
         console.log(error);
         res.status(500).json(error);
     }
 }
-async function getBloqueos(_req: Request, res: Response) {
+async function getBloqueos(req: Request, res: Response) {
     try {
-        const logs = await getBloqueosService();
-        res.status(200).json(logs);
+        const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
+
+        const bloqueos = await getBloqueosService(ipFiltro);
+        res.status(200).json(bloqueos);
     } catch (error) {
         console.log(error);
         res.status(500).json(error);

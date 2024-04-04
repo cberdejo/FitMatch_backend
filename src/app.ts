@@ -12,6 +12,7 @@ import ejerciciosRouter from './routes/exercises_routes';
 import registroRouter from './routes/registro_routes';
 import medidasRouter from './routes/medidas_routes';
 import notificacionRouter from './routes/notification_routes';
+import logsRouter from './routes/log_routes';
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -61,6 +62,7 @@ app.use('/', ejerciciosRouter);
 app.use('/', registroRouter);
 app.use('/', medidasRouter);
 app.use('/', notificacionRouter);
+app.use('/', logsRouter);
 
 /*
 httpsServer.listen(port, () => {

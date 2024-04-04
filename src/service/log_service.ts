@@ -29,10 +29,13 @@ function postLogService(log: { email: string, exito: boolean, ip_address: string
  * @returns Una Promesa que se resuelve con un array de entradas de registro.
  */
 
-function verLogsService(){
+function verLogsService( ip_filtro?: string){
     try{
+      const where = ip_filtro ? { ip_address: ip_filtro } : {};
+
         return db.logs.findMany({
-            orderBy: {
+          where: where, 
+          orderBy: {
                 fecha: 'desc', 
             },
         });
@@ -93,7 +96,7 @@ function createBloqueo( ip_address: string, fecha: Date){
  * @returns Una Promesa que se resuelve con el recuento de intentos de inicio de sesión fallidos.
  */
 function countFailedLoginAttemptsByIp(ip_address: string){
-  const minutesBloqueados = parseInt(process.env.MINUTOS_BLOQUEO || '5', 10);
+  const minutesBloqueados = parseInt(process.env.MINUTOS_CONTAR_BLOQUEO || '1', 10);
 
   const minutesAgo = new Date();
   minutesAgo.setMinutes(minutesAgo.getMinutes() - minutesBloqueados);
@@ -114,10 +117,12 @@ function countFailedLoginAttemptsByIp(ip_address: string){
     }
 }
 
-function getBloqueosService(){
+function getBloqueosService( ip_filtro?: string){
   try{
+    const where = ip_filtro ? { ip_address: ip_filtro } : {};
     return db.bloqueos.findMany(
       {
+        where: where,
         orderBy: {
           fecha_hasta: 'desc',
         },

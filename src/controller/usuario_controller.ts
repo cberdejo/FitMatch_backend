@@ -13,16 +13,12 @@ import { getPublicIdFromUrl } from '../utils/funciones_auxiliares_controller';
 import { esNumeroValido } from '../utils/funciones_auxiliares_validator';
 import { codigo_otp } from '@prisma/client';
 import { sendOTPMessage } from '../config/mailer';
+import { countFailedLoginAttemptsByIp, createBloqueo, getBloqueoByIPService, postLogService } from '../service/log_service';
 
 
 
-/**
- * Crea un nuevo usuario.
- * @param req - Objeto de solicitud de Express.
- * @param res - Objeto de respuesta de Express.
- */
 
-async function createUsuario(req: Request, res: Response) {
+export async function createUsuario(req: Request, res: Response) {
   try {
       const { username, email, password, profile_id, birth } = req.body;
       const profile_picture = req.file;
@@ -51,7 +47,7 @@ async function createUsuario(req: Request, res: Response) {
 
 
 
-async function getUsuarioToken(req: Request, res: Response) {
+export async function getUsuarioToken(req: Request, res: Response) {
   try {
     const id:number = parseInt(req.params.id);
 
@@ -77,13 +73,7 @@ async function getUsuarioToken(req: Request, res: Response) {
 
 
 
-
-/**
- * Edita la información de un usuario.
- * @param req - Objeto de solicitud de Express.
- * @param res - Objeto de respuesta de Express.
- */
-async function editUsuario(req: Request, res: Response) {
+export async function editUsuario(req: Request, res: Response) {
   try {
     const user_id = parseInt(req.params.id); 
     const { username, email, password, profile_id, birth, bio, isPublic, system } = req.body;
@@ -141,7 +131,7 @@ async function editUsuario(req: Request, res: Response) {
  * @param _req - Objeto de solicitud de Express.
  * @param res - Objeto de respuesta de Express.
  */
-async function getUsuarios(_req: Request, res: Response) {
+export async function getUsuarios(_req: Request, res: Response) {
   try {
     const usuarios = await usuario_service.getAll();
     res.status(200).json(usuarios);
@@ -152,36 +142,42 @@ async function getUsuarios(_req: Request, res: Response) {
 }
 
 // LOGIN
-/**
- * Verifica las credenciales del usuario y emite un token JWT si las credenciales son válidas.
- * @param req - Objeto de solicitud de Express.
- * @param res - Objeto de respuesta de Express.
- */
-async function verifyUsuarios(req: Request, res: Response) {
+
+export async function verifyUsuarios(req: Request, res: Response) {
   try {
     const { email, plainPassword } = req.body;
+    const ip_address = req.ip; //obtengo la ip
+    if (!ip_address) {
+      return res.status(400).json({ message: 'No se pudo determinar la dirección IP de la solicitud.' }); // 400 Bad Request
+    }
+    if (await isIPBlocked(ip_address)) {
+      return res.status(403).json({ message: 'IP bloqueada. Intenta nuevamente más tarde.' }); // 403 Forbidden
+    }
 
+    
     const user = await usuario_service.getByEmail(email);
     if (user === null) {
-      res.status(401).json({ message: 'Credenciales incorrectas' });
+      handleFailedLogin(email, ip_address);
+      return res.status(401).json({ message: 'Credenciales incorrectas' });
     } else {
       const passwordMatches = checkPassword(plainPassword, user.password);
-      //CREAR LOGS Y BLOQUEOS DE IP DURANTE 5 MINUTOS PARA DETENER FUERZA BRUTA - PENDIENTE
       
       if (passwordMatches) {
         // Crea un nuevo objeto sin la contraseña
         const userWithoutPassword = { ...user, password: undefined };
 
         let token = jwt.sign({ user: userWithoutPassword }, process.env.JWT_SECRET!, { expiresIn: '1h' });
-
-        res.status(200).json({ token });
+        
+        await handleSuccessfulLogin(email, ip_address);
+        return res.status(200).json({ token });
       } else {
-        res.status(401).json({ message: 'Credenciales incorrectas' });
+        handleFailedLogin(email, ip_address);
+        return res.status(401).json({ message: 'Credenciales incorrectas' });
       }
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json(error);
+    return res.status(500).json(error); 
   }
 }
 
@@ -191,7 +187,7 @@ async function verifyUsuarios(req: Request, res: Response) {
  * @param req - Objeto de solicitud de Express.
  * @param res - Objeto de respuesta de Express.
  */
-async function getUsuarioById(req: Request, res: Response) {
+export async function getUsuarioById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
     const usuario = await usuario_service.getById(id);
@@ -211,7 +207,7 @@ async function getUsuarioById(req: Request, res: Response) {
  * @param req - Objeto de solicitud de Express.
  * @param res - Objeto de respuesta de Express.
  */
-async function getUsuarioByEmail(req: Request, res: Response) {
+export async function getUsuarioByEmail(req: Request, res: Response) {
   try {
     const email = req.params.email;
     const usuario = await usuario_service.getByEmail(email);
@@ -226,12 +222,8 @@ async function getUsuarioByEmail(req: Request, res: Response) {
   }
 }
 
-/**
- * Decodifica un token JWT y devuelve la información del usuario asociada.
- * @param req - Objeto de solicitud de Express.
- * @param res - Objeto de respuesta de Express.
- */
-async function decodeToken(req: Request, res: Response) {
+
+export async function decodeToken(req: Request, res: Response) {
   try {
     const token = req.params.token;
     const secret = process.env.JWT_SECRET || "b09a8dfac58621a5b742dd865e4c4c7782f8f5c9387ae9a0b3c13d87bbbc1e7f";
@@ -253,7 +245,8 @@ async function decodeToken(req: Request, res: Response) {
   }
 }
 
-async function checkOtp(req: Request, res: Response) {
+
+export async function checkOtp(req: Request, res: Response) {
   try {
     const otp = req.body.otp;
     if (!otp) {
@@ -280,7 +273,7 @@ async function checkOtp(req: Request, res: Response) {
 }
 
 
-async function sendOtp(req: Request, res: Response) {
+export async function sendOtp(req: Request, res: Response) {
   try {
     const mail = req.body.mail;
     if (!mail) {
@@ -314,15 +307,75 @@ async function generateOTP(): Promise<string> {
 
 
 
-export {
-  createUsuario,
-  editUsuario,
-  getUsuarioById,
-  getUsuarioByEmail,
-  getUsuarios,
-  verifyUsuarios,
-  decodeToken,
-  getUsuarioToken,
-  checkOtp,
-  sendOtp
+//En caso de fallar el login
+async function handleFailedLogin(email: string, ip_address: string) {
+  const intentosBloqueo = parseInt(process.env.INTENTOS_BLOQUEO || '5', 10); // Minutos de bloqueo
+  // Registra el intento fallido en logs
+  await postLogService({
+    email: email,
+    exito: false,
+    ip_address: ip_address,
+  });
+
+  // Bloquear la IP después de X intentos fallidos, solo se contaran si la fecha es del pasado x minutos
+  const failedLoginCount = await countFailedLoginAttemptsByIp(ip_address);
+  console.log(failedLoginCount);
+  if (failedLoginCount >= intentosBloqueo) {
+    console.log('IP bloqueada');
+    await blockIP(ip_address);
+  }
 }
+//en caso de acertar el login
+async function handleSuccessfulLogin(email: string, ip_address: string) {
+  // Registra el intento exitoso en logs
+  await postLogService({
+    email: email,
+    exito: true,
+    ip_address: ip_address,
+  });
+
+
+  //await unblockIP(ip_address);
+}
+
+ //Verifica si una IP está bloqueada.
+
+ 
+async function isIPBlocked(ip_address: string): Promise<boolean> {
+  try {
+    const block = await getBloqueoByIPService(ip_address);
+
+    if (block && block.fecha_hasta) {
+      const now = new Date();
+
+      return now <= block.fecha_hasta;
+    }
+
+    return false; // IP no bloqueada
+  } catch (error) {
+    console.log(error);
+    return false; 
+  }
+}
+
+
+// Bloquea una IP durante x minutos.
+
+async function blockIP(ip_address: string): Promise<void> {
+  try{
+    const minutesBloqueados = parseInt(process.env.MINUTOS_BLOQUEO || '5', 10); // Minutos de bloqueo
+    
+    const bloqueo_hasta = new Date();
+    bloqueo_hasta.setMinutes(bloqueo_hasta.getMinutes() + minutesBloqueados);
+
+    // Crea un nuevo registro de bloqueo en la base de datos.
+    await createBloqueo( ip_address, bloqueo_hasta );
+  }catch(error){
+    console.log(error);
+    throw error;
+  }
+}
+
+
+
+

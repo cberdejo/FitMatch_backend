@@ -12,19 +12,6 @@ import {esNumeroValido } from '../utils/funciones_auxiliares_validator';
 
 
 
-/**
- * Validates the request for getting plantilla posts. 
- * Ensures that userId is a valid number and greater than 0.
- * Verifies that page and pageSize are positive integers.
- * If any validation fails, it responds with an appropriate error message and a 400 status code.
- * 
- * @param {Request} req - The request object.
- * @param {Response} res - The response object.
- * @param {NextFunction} next - The next function in the middleware chain.
- * @return {Promise<void>} - Returns nothing.
- */
-
-
 export async function validateGetPlantillaPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         
@@ -56,14 +43,7 @@ export async function validateGetPlantillaPosts(req: Request, res: Response, nex
 
 
 
-/**
- * Validates the request body for creating a plantilla.
- *
- * @param {Request} req - the request object
- * @param {Response} res - the response object
- * @param {NextFunction} next - the next function to call
- * @return {Promise<void>} - a promise that resolves to void
- */
+
 export async function validateCreatePlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { template_name, description, etiquetas, user_id } = req.body;
 
@@ -106,14 +86,7 @@ export async function validateCreatePlantillaPost(req: Request, res: Response, n
     next();
 }
 
-/**
- * Validates an edit plantilla post.
- *
- * @param {Request} req - the request object
- * @param {Response} res - the response object
- * @param {NextFunction} next - the next middleware function
- * @return {Promise<void>} a promise that resolves to void
- */
+
 export async function validateEditPlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
     const template_id = parseInt(req.params.template_id);
     const { template_name, description, etiquetas, user_id} = req.body;

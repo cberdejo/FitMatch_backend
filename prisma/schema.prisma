@@ -335,3 +335,17 @@ model codigo_otp {
   valor          String   @unique(map: "valor") @default("") @db.VarChar(50)
   fecha_caducado DateTime @db.Timestamp(0)
 }
+
+model bloqueos {
+  id          Int      @id @default(autoincrement())
+  ip_address  String   @db.VarChar(50)
+  fecha_hasta DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+}
+
+model logs {
+  id         Int      @id @default(autoincrement())
+  fecha      DateTime @default(dbgenerated("(now())")) @db.DateTime(0)
+  exito      Boolean  @default(false) @db.Bit(1)
+  ip_address String   @default("") @db.VarChar(50)
+  email      String   @db.Text
+}

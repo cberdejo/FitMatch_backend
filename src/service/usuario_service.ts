@@ -29,9 +29,7 @@ export const usuario_service = {
   async  getAll() {
     try {
       return db.usuario.findMany({
-        where: {
-          profile_id:2,
-        }
+      
       });
     } catch (error) {
       console.error('Error al obtener usuarios de la base de datos', error);

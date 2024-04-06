@@ -33,7 +33,9 @@ async function validateCreateUsuario(req: Request, res: Response, next: NextFunc
     }
 
     // Validación de Email
-    if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
+    
+    if (profile_id != 1 &&!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
+        console.error('Email inválido');
         return res.status(400).json({ error: 'Email inválido' });
     }
 
@@ -43,10 +45,12 @@ async function validateCreateUsuario(req: Request, res: Response, next: NextFunc
         const currentDate = new Date();
 
         if (isNaN(birthDate.getTime())) {
+             console.error('Fecha de nacimiento inválida');
             return res.status(400).json({ error: 'Fecha de nacimiento inválida' });
         }
 
         if (birthDate > currentDate || new Date(birthDate.getFullYear() + 120, birthDate.getMonth(), birthDate.getDate()) < currentDate) {
+            console.error('Fecha de nacimiento no razonable');
             return res.status(400).json({ error: 'Fecha de nacimiento no razonable' });
         }
     }
@@ -54,6 +58,7 @@ async function validateCreateUsuario(req: Request, res: Response, next: NextFunc
     // Validación perfil
     const profile = parseInt(profile_id);
     if (isNaN(profile) || profile < 0) {
+        console.error('Perfil inválido');
         return res.status(400).json({ error: 'Perfil inválido' });
     }
 
@@ -67,9 +72,7 @@ async function validateCreateUsuario(req: Request, res: Response, next: NextFunc
 
 
 async function validateEditUsuario(_req: Request, _res: Response, next: NextFunction): Promise<void> {
-    
   
-   //terminar
     return next();
 }
 

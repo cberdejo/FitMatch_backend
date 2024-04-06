@@ -57,6 +57,7 @@ export const plantillaService = {
           usuario: {
             select: {
               username: true,
+              bio: true,
             },
           },
         },
@@ -90,6 +91,7 @@ async getById(id: number): Promise<PlantillaDeEntrenamientoConPromedio | null> {
         usuario: {
             select: {
                 username: true,
+                bio: true,
             }
         }
     }

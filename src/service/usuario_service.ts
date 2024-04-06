@@ -28,7 +28,11 @@ export const usuario_service = {
    */
   async  getAll() {
     try {
-      return db.usuario.findMany();
+      return db.usuario.findMany({
+        where: {
+          profile_id:2,
+        }
+      });
     } catch (error) {
       console.error('Error al obtener usuarios de la base de datos', error);
       throw new Error('No se pudieron obtener los usuarios');
@@ -119,6 +123,18 @@ async edit(data: {
     console.error('Error al editar usuario en la base de datos', error);
     throw new Error('No se pudo editar el usuario');
   }
+},
+
+async toggleBanUser(userId: number) {
+  const user = await this.getById(userId);
+  if (!user) {
+    throw new Error('Usuario no encontrado');
+  }
+  const banned:boolean = user.banned ? false : true;
+  return db.usuario.update({
+    where: { user_id: userId },
+    data: { banned: banned },
+  });
 },
   async getWeightSystemByUserId(userId: number): Promise<string> {
     try {

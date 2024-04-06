@@ -153,6 +153,7 @@ export async function verifyUsuarios(req: Request, res: Response) {
     if (await isIPBlocked(ip_address)) {
       return res.status(403).json({ message: 'IP bloqueada. Intenta nuevamente más tarde.' }); // 403 Forbidden
     }
+    
 
     
     const user = await usuario_service.getByEmail(email);
@@ -160,6 +161,11 @@ export async function verifyUsuarios(req: Request, res: Response) {
       handleFailedLogin(email, ip_address);
       return res.status(401).json({ message: 'Credenciales incorrectas' });
     } else {
+      if (user.banned == true ){
+        handleFailedLogin(email, ip_address);
+        return res.status(401).json({ message: 'Cuenta baneada' });
+
+      }
       const passwordMatches = checkPassword(plainPassword, user.password);
       
       if (passwordMatches) {
@@ -291,6 +297,21 @@ export async function sendOtp(req: Request, res: Response) {
   }
 }
 
+export async function toggleBanUser(req: Request, res: Response) {
+  try {
+    const id = parseInt(req.params.ban_id);
+    const user = await usuario_service.toggleBanUser(id);
+    if (!user) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+    } else {
+      res.status(200).json(user);
+    }
+  } catch (error) {
+    console.error('Error al cambiar estado de baneo del usuario', error);
+    res.status(500).json(error);
+  }
+}
+
 
 async function generateOTP(): Promise<string> {
   // Genera un código OTP de 6 dígitos
@@ -375,6 +396,8 @@ async function blockIP(ip_address: string): Promise<void> {
     throw error;
   }
 }
+
+
 
 
 

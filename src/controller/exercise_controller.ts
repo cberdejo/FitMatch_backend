@@ -125,7 +125,26 @@ export async function getExercisesByMaterial(req: Request, res: Response): Promi
         
     }
 }
+export async function updateExercise(req: Request, res: Response): Promise<void> {
+    try {
+        const exercise_id = parseInt(req.params.id);
+        const name:string = req.body.name;
+        const description:string = req.body.description;
+        const muscleGroupId:number = req.body.muscle_group_id;
+        const materialId:number = req.body.material_id;
+        const video:string = req.body.video;
 
+
+        const updatedExercise = await exerciseService.update(exercise_id, name, description, muscleGroupId, materialId, video);
+        res.status(200).json(updatedExercise);
+
+
+         
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al actualizar el ejercicio' });
+    }
+}
 export async function  createExercise(req: Request, res: Response): Promise<void> {
     try {
         let userId:number | null = req.body.user_id;

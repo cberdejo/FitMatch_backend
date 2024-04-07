@@ -17,6 +17,20 @@ export const exerciseService = {
         })
         
     },
+    async update(exercise_id: number, name: string, description: string, muscle_group_id: number, material_id: number, video: string) {
+        return await db.ejercicios.update({
+            where: {
+                exercise_id: exercise_id
+            },
+            data: {
+                name: name,
+                description: description,
+                muscle_group_id: muscle_group_id,
+                material_id: material_id,
+                video: video
+            }
+        })
+    },
     async delete(exercise_id: number) {
         return await db.ejercicios.delete({
             where: {

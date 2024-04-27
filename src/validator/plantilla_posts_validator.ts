@@ -47,39 +47,48 @@ export async function validateGetPlantillaPosts(req: Request, res: Response, nex
 export async function validateCreatePlantillaPost(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { template_name, description, etiquetas, user_id } = req.body;
 
+
     if (!template_name) {
         res.status(400).json({ error: 'El nombre de la plantilla no puede estar vacío.' });
+        console.error ('El nombre de la plantilla no puede estar vacío.');
         return;
     }
     if (!description) {
         res.status(400).json({ error: 'La descripción de la plantilla no puede estar vacía.' });
+        console.error ('La descripción de la plantilla no puede estar vacía.');
         return;
     }
     if (!etiquetas) {
         res.status(400).json({ error: 'Las etiquetas de la plantilla no pueden estar vacías.' });
+        console.error ('Las etiquetas de la plantilla no pueden estar vacías.');
         return;
     }
    
     if (!Array.isArray(etiquetas) || etiquetas.length < 1) {
         res.status(400).json({ error: 'Debes seleccionar al menos una etiqueta.' });
+        console.error ('Debes seleccionar al menos una etiqueta.');
         return;
     }
      
     if (!user_id) {
         res.status(400).json({ error: 'El ID del usuario no puede estar vacío.' });
+        console.error ('El ID del usuario no puede estar vacío.');
         return;
     }
     if (!esNumeroValido(user_id)) {
         res.status(400).json({ error: 'El ID del usuario debe ser un número.' });
+        console.error ('El ID del usuario debe ser un número.');
         return;
     }
 
     const isValidEtiqueta = (etiqueta: Etiqueta_In) => {
         return etiqueta.objectives || etiqueta.experience || etiqueta.interests || etiqueta.equipment || etiqueta.duration;
+         
     };
 
     if (!etiquetas.every(isValidEtiqueta)) {
         res.status(400).json({ error: 'Cada etiqueta debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses, equipo, o duracion.' });
+        console.error ('Cada etiqueta debe tener al menos uno de los siguientes campos no nulos: objetivos, experiencia, intereses, equipo, o duracion.');
         return;
     }
     

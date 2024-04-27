@@ -24,7 +24,7 @@ const trainer_postsRouter: Router = express.Router();
 trainer_postsRouter.post('/plantillaPosts/',validateGetPlantillaPosts,  getAllPlantillaPosts);
 trainer_postsRouter.get('/plantillaPosts/:template_id',  getPlantillaPostById);
 
-trainer_postsRouter.post('/plantillaPosts/', upload.single('picture'), validateCreatePlantillaPost, createPlantillaPost);
+trainer_postsRouter.post('/plantillaPosts/create', upload.single('picture'), validateCreatePlantillaPost, createPlantillaPost);
 
 
 trainer_postsRouter.post('/duplicatePlantilla', duplicatePlantillaPost)

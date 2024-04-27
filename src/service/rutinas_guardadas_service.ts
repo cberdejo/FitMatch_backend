@@ -68,8 +68,6 @@ export const rutinaGuardadaService = {
           });
         }
 
-        
-  
         // Añadir la plantilla a rutinas_guardadas, ya sea que estuviera archivada o no
         const activada = await prisma.rutinas_guardadas.create({
           data: {

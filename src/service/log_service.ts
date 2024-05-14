@@ -29,15 +29,19 @@ function postLogService(log: { email: string, exito: boolean, ip_address: string
  * @returns Una Promesa que se resuelve con un array de entradas de registro.
  */
 
-function verLogsService( ip_filtro?: string){
+function verLogsService( ip_filtro?: string, page: number = 1, pageSize: number = 10){
     try{
       const where = ip_filtro ? { ip_address: ip_filtro } : {};
+
+        const offset = (page - 1) * pageSize;
 
         return db.logs.findMany({
           where: where, 
           orderBy: {
                 fecha: 'desc', 
             },
+            skip: offset,
+            take: pageSize
         });
 
     }catch(error){
@@ -96,7 +100,7 @@ function createBloqueo( ip_address: string, fecha: Date){
  * @returns Una Promesa que se resuelve con el recuento de intentos de inicio de sesión fallidos.
  */
 function countFailedLoginAttemptsByIp(ip_address: string){
-  const minutesBloqueados = parseInt(process.env.MINUTOS_CONTAR_BLOQUEO || '1', 10);
+  const minutesBloqueados = parseInt(process.env.MINUTOS_CONTAR_BLOQUEO || '1', 100);
 
   const minutesAgo = new Date();
   minutesAgo.setMinutes(minutesAgo.getMinutes() - minutesBloqueados);
@@ -117,15 +121,19 @@ function countFailedLoginAttemptsByIp(ip_address: string){
     }
 }
 
-function getBloqueosService( ip_filtro?: string){
+function getBloqueosService( ip_filtro?: string, page: number = 1, pageSize: number = 100){
   try{
     const where = ip_filtro ? { ip_address: ip_filtro } : {};
+    const offset = (page - 1) * pageSize;
+
     return db.bloqueos.findMany(
       {
         where: where,
         orderBy: {
           fecha_hasta: 'desc',
         },
+        skip: offset,
+        take: pageSize
       }
     );
   } catch(error){

@@ -28,7 +28,7 @@ export async function getAllPlantillaPosts(req: Request, res: Response): Promise
         const duration = req.body.duration ? (req.body.duration as string).split(',') : [];
 
         const page = parseInt(req.body.page as string) || 1;
-        const pageSize = parseInt(req.body.pageSize as string) || 10;
+        const pageSize = parseInt(req.body.pageSize as string) || 100;
 
         const plantillaPosts: PlantillaDeEntrenamientoConPromedio[] = 
         await plantillaService.getPlantillaPosts( userId, isPublic, isHidden, page, pageSize, name, experiences, objectives, interests, equipment, duration);

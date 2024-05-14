@@ -6,7 +6,10 @@ async function verLogs(req: Request, res: Response) {
     try {
         const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
 
-        const logs = await verLogsService(ipFiltro);
+        const page = parseInt(req.body.page as string) || 1;
+        const pageSize = parseInt(req.body.pageSize as string) || 10;
+
+        const logs = await verLogsService(ipFiltro, page, pageSize);
         res.status(200).json(logs);
     } catch (error) {
         console.log(error);
@@ -17,7 +20,10 @@ async function getBloqueos(req: Request, res: Response) {
     try {
         const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
 
-        const bloqueos = await getBloqueosService(ipFiltro);
+        const page = parseInt(req.body.page as string) || 1;
+        const pageSize = parseInt(req.body.pageSize as string) || 10;
+
+        const bloqueos = await getBloqueosService(ipFiltro, page, pageSize);
         res.status(200).json(bloqueos);
     } catch (error) {
         console.log(error);

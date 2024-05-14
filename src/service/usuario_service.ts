@@ -4,7 +4,7 @@ import db from "../config/database";
 
 
 
-export const usuario_service = {
+export  const usuario_service = {
   /**
    * Crea un nuevo usuario en la base de datos.
    * @param data - Datos del usuario a crear.
@@ -26,11 +26,15 @@ export const usuario_service = {
    * Obtiene todos los usuarios de la base de datos.
    * @returns Promise con la lista de usuarios.
    */
-  async  getAll() {
+  async  getAll( page:number = 1, pageSize:number = 100) {
+
     try {
+       
+      const offset = (page - 1) * pageSize;
       return db.usuario.findMany({
-      
-      });
+        skip: offset,
+        take: pageSize
+      }, );
     } catch (error) {
       console.error('Error al obtener usuarios de la base de datos', error);
       throw new Error('No se pudieron obtener los usuarios');

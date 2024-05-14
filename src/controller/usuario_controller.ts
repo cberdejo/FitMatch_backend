@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import {
   otpService,
   usuario_service
@@ -131,9 +132,11 @@ export async function editUsuario(req: Request, res: Response) {
  * @param _req - Objeto de solicitud de Express.
  * @param res - Objeto de respuesta de Express.
  */
-export async function getUsuarios(_req: Request, res: Response) {
+export async function getUsuarios(req: Request, res: Response) {
   try {
-    const usuarios = await usuario_service.getAll();
+    const page = parseInt(req.body.page as string) || 1;
+    const pageSize = parseInt(req.body.pageSize as string) || 100;
+    const usuarios = await usuario_service.getAll(page, pageSize);
     res.status(200).json(usuarios);
   } catch (error) {
     console.log(error);

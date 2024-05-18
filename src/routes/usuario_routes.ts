@@ -19,7 +19,7 @@ import { validatePermisos } from '../validator/log_validator';
 
 const usuarioRouter: Router = express.Router();
 
-usuarioRouter.get('/usuarios/:id', validatePermisos,  getUsuarios);
+usuarioRouter.post('/usuarios/:id', validatePermisos,  getUsuarios);
 usuarioRouter.put('/usuarios/ban/:id/:ban_id', validatePermisos,  toggleBanUser);
 usuarioRouter.get('/usuarioToken/:id', paramIdValidation, getUsuarioToken);
 usuarioRouter.post('/usuarios', upload.single('profile_picture'), validateCreateUsuario, createUsuario);

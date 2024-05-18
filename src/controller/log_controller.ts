@@ -6,8 +6,8 @@ async function verLogs(req: Request, res: Response) {
     try {
         const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
 
-        const page = parseInt(req.body.page as string) || 1;
-        const pageSize = parseInt(req.body.pageSize as string) || 10;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
 
         const logs = await verLogsService(ipFiltro, page, pageSize);
         res.status(200).json(logs);
@@ -20,8 +20,8 @@ async function getBloqueos(req: Request, res: Response) {
     try {
         const ipFiltro: string |undefined =  req.query.ip ? req.query.ip as string : undefined;
 
-        const page = parseInt(req.body.page as string) || 1;
-        const pageSize = parseInt(req.body.pageSize as string) || 10;
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
 
         const bloqueos = await getBloqueosService(ipFiltro, page, pageSize);
         res.status(200).json(bloqueos);

@@ -134,13 +134,17 @@ export async function editUsuario(req: Request, res: Response) {
  */
 export async function getUsuarios(req: Request, res: Response) {
   try {
-    const page = parseInt(req.body.page as string) || 1;
-    const pageSize = parseInt(req.body.pageSize as string) || 100;
-    const usuarios = await usuario_service.getAll(page, pageSize);
+    const page = req.body.page || 1;
+    const pageSize = req.body.pageSize || 100;
+    const filterType = req.body.filterType || null;
+    const filterValue = req.body.filterValue || null;
+    const role = req.body.role || null;
+
+    const usuarios = await usuario_service.getAll(page, pageSize, filterType, filterValue, role);
     res.status(200).json(usuarios);
   } catch (error) {
     console.log(error);
-    res.status(500).json(error);
+    res.status(500).json({ message: 'Error al obtener los usuarios', error });
   }
 }
 

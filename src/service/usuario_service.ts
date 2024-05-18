@@ -26,15 +26,46 @@ export  const usuario_service = {
    * Obtiene todos los usuarios de la base de datos.
    * @returns Promise con la lista de usuarios.
    */
-  async  getAll( page:number = 1, pageSize:number = 100) {
-
+  async  getAll(
+    page: number = 1,
+    pageSize: number = 100,
+    filterType?: string,
+    filterValue?: string,
+    role?: string
+  ) {
     try {
-       
       const offset = (page - 1) * pageSize;
-      return db.usuario.findMany({
+      const where: any = {};
+  
+      if (filterType && filterValue) {
+        if (filterType === 'Nombre de usuario') {
+          where.username = {
+            contains: filterValue,
+            mode: 'insensitive',
+          };
+        } else if (filterType === 'Correo electrónico') {
+          where.email = {
+            contains: filterValue,
+            mode: 'insensitive',
+          };
+        }
+      }
+  
+      if (role) {
+        if (role === 'Administrador') {
+          where.profile_id = 1; 
+        } else if (role === 'Cliente') {
+          where.profile_id = 2; 
+        }
+      }
+  
+      const usuarios = await db.usuario.findMany({
         skip: offset,
-        take: pageSize
-      }, );
+        take: pageSize,
+        where,
+      });
+  
+      return usuarios;
     } catch (error) {
       console.error('Error al obtener usuarios de la base de datos', error);
       throw new Error('No se pudieron obtener los usuarios');

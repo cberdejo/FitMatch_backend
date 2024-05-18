@@ -4,6 +4,7 @@ import { usuario_service } from '../service/usuario_service';
 
  export async function validatePermisos(req: Request, res: Response, next: NextFunction) {
      const userId = req.params.id;
+     console.log(userId);
      if (!esNumeroValido(userId)) {
          res.status(400).json({ error: 'userId no válido' });
          return;

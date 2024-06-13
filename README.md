@@ -7,6 +7,7 @@ This repository contains the backend code for the FitMatch application. FitMatch
 - [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
+- [Running Tests] (#running-tests)
 - [Environment Variables](#environment-variables)
 
 

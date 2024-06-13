@@ -7,8 +7,6 @@ This repository contains the backend code for the FitMatch application. FitMatch
 - [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
-- [Usage](#usage)
-- [API Documentation](#api-documentation)
 - [Environment Variables](#environment-variables)
 
 
@@ -61,8 +59,6 @@ To get a local copy up and running, follow these simple steps:
     ```sh
     npm run dev
     ```
-
-## Usage
 
 ### Running Tests
 

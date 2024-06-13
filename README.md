@@ -1,12 +1,13 @@
 # FitMatch Backend
 
-This repository contains the backend code for the FitMatch application. FitMatch is a TFG which emulates a platform designed to callow users to track their workouts, allowing users to find the perfect match for their fitness goals.
+This repository contains the backend code for the FitMatch application. FitMatch is a TFG which emulates a platform designed to allow users to track their workouts, allowing users to find the perfect match for their fitness goals.
 
 ## Table of Contents
 
 - [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
+- [Usage](#usage)
 - [Running Tests](#running-tests)
 - [Environment Variables](#environment-variables)
 
@@ -60,7 +61,12 @@ To get a local copy up and running, follow these simple steps:
     ```sh
     npm run dev
     ```
+## Usage
 
+This back end was designed for this front end:
+```
+https://github.com/cberdejo/FitMatch_frontend
+```
 ### Running Tests
 
 To run the tests, use the following command:
@@ -71,7 +77,7 @@ npm run test
 The following environment variables are required to run the application:
 
 Variable ->	Description
-```sh
+```
 PORT	-> Refers to the port on which the backend will be accessible. Recommended value is 3000.
 JWT_SECRET ->	A secret key used to encrypt JWT tokens. A strong, compact password is recommended, which can be generated online.
 DATABASE_URL ->	The URL for connecting to the database. It should have the following structure: mysql://user:password@localhost:port/fitmatch. Use localhost for local databases, typically on port 3306.

@@ -56,8 +56,12 @@ To get a local copy up and running, follow these simple steps:
     ```sh
     npx prisma migrate dev
     ```
+6. Init Data to database using
+    ```
+    fitmatch.sql
+    ```
 
-6. Start the development server:
+7. Start the development server:
     ```sh
     npm run dev
     ```
